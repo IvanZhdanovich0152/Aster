@@ -39,6 +39,7 @@ public partial class App : Application
             {
                 DataContext = new MainViewModel(),
             };
+            
         }
 
         base.OnFrameworkInitializationCompleted();

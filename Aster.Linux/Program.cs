@@ -2,6 +2,7 @@
 using ReactiveUI.Avalonia;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Aster.Core;
 using Aster.Core.Models;
 using Aster.Core.Views;
@@ -37,6 +38,10 @@ public class LinuxPlatformBootstrap : IPlatformBootstrap
 
 public class LinuxFileSystem : IFileSystem
 {
-    public IEnumerable<string> GetFiles(string path) => new List<string>();
+    public IEnumerable<string> GetFiles(string path)
+    {
+        return new ObservableCollection<string> {"bin", "boot", "root", "usr" };
+    }
+
 
 }

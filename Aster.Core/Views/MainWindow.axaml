@@ -15,8 +15,18 @@
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <TextBox Text="{Binding Greeting}"
-             HorizontalAlignment="Center"
-             VerticalAlignment="Center" />
+    <StackPanel Margin="20">
+        <Button 
+            Content="Обновить" 
+            Command="{Binding RefreshCommand}" />
+       
+        <TextBlock Margin="0 5">Choose an file:</TextBlock>
+        <ListBox ItemsSource="{Binding Entries}"/>
+        
+    </StackPanel>
+    
+    
+    
+    
 
 </Window>

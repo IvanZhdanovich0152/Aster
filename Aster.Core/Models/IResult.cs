@@ -4,7 +4,7 @@ namespace Aster.Core.Models;
 
 public interface IResult
 {
-    bool IsSuccess { get; }
+    public bool IsOk { get; }
     
-    IEnumerable<string> Errors { get; }
+    public IEnumerable<string> Errors { get; }
 }
