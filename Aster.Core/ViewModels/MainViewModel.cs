@@ -4,7 +4,7 @@ namespace Aster.Core.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
-    private string _greeting = "Welcome to Avalonia!";
+    private string _greeting = "Welcome to Aster!";
 
     public string Greeting
     {
