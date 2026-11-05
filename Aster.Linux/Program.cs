@@ -25,7 +25,9 @@ internal static class Program
             .Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
-            .LogToTrace();
+            .LogToTrace()
+            .UseReactiveUI(_ => { });
+            
 }
 
 
