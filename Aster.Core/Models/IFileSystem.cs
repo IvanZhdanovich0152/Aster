@@ -4,5 +4,6 @@ namespace Aster.Core.Models;
 
 public interface IFileSystem
 {
-    IEnumerable<string> GetFiles(string path);
+    IReadOnlyList<IFileSystemEntry> GetEntries(string path);
+    void Open(IFileSystemEntry entry);
 }

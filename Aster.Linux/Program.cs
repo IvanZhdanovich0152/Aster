@@ -2,11 +2,11 @@
 using ReactiveUI.Avalonia;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using Aster.Core;
 using Aster.Core.Models;
-using Aster.Core.Views;
-using Aster.Core.ViewModels;
 
 
 namespace Aster.Linux;
@@ -33,15 +33,12 @@ public class LinuxPlatformBootstrap : IPlatformBootstrap
 {
 
     public IFileSystem CreateFileSystem() => new LinuxFileSystem();
-    public string GetDefaultRootPath() => "/";
-}
-
-public class LinuxFileSystem : IFileSystem
-{
-    public IEnumerable<string> GetFiles(string path)
+    public string GetDefaultRootPath()
     {
-        return new ObservableCollection<string> {"bin", "boot", "root", "usr" };
+        var homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return string.IsNullOrWhiteSpace(homePath) ? "/" : homePath;
     }
-
-
 }
+
+public class LinuxFileSystem : IFileSystem;
+
