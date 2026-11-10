@@ -58,7 +58,7 @@ public class DirectoryEntry : IFileSystemEntry
 
 public class FileEntryInfo : FileEntry
 {
-    public DateTime LastModified { get; }
+    public DateTime LastModifiedUtc { get; }
     public long SizeBytes { get; }
 
     public FileEntryInfo(
@@ -66,40 +66,60 @@ public class FileEntryInfo : FileEntry
         string name,
         string extension,
         long sizeBytes,
-        DateTime lastModified
+        DateTime lastModifiedUtc
         ) 
         : base(pathToEntry, name, extension)
     {
-        LastModified = lastModified;
+        LastModifiedUtc = lastModifiedUtc;
         SizeBytes = sizeBytes;
     }
 
     public FileEntryInfo(FileInfo fileInfo)
     :base(fileInfo.FullName, fileInfo.Name, fileInfo.Extension)
     {
-        LastModified = fileInfo.LastWriteTime;
+        LastModifiedUtc = fileInfo.LastWriteTimeUtc;
         SizeBytes = fileInfo.Length;
     }
 }
 
 public class DirectoryEntryInfo : DirectoryEntry
 {
-    public DateTime LastModified { get; }
+    public DateTime LastModifiedUtc { get; }
 
     public DirectoryEntryInfo(
         string dirPath,
         string name,
-        DateTime lastModified
+        DateTime lastModifiedUtc
     )
         : base(dirPath, name)
     {
-        LastModified = lastModified;
+        LastModifiedUtc = lastModifiedUtc;
     }
 
     private protected DirectoryEntryInfo(DirectoryInfo dirInfo) 
         : base(dirInfo.FullName, dirInfo.Extension)
     {
-        LastModified = dirInfo.LastWriteTime;
+        LastModifiedUtc = dirInfo.LastWriteTimeUtc;
+    }
+}
+
+public sealed class DriveEntryInfo
+{
+    public string PathToEntry { get; }
+    public string Name { get; }
+    
+    public DriveEntryInfo(string pathToEntry, string name)
+    {
+        PathToEntry = pathToEntry;
+        Name = name;
+    }
+
+    public DriveEntryInfo(DriveInfo driveInfo)
+    {
+        PathToEntry = driveInfo.Name;
+        Name = !string.IsNullOrWhiteSpace(driveInfo.VolumeLabel)
+            ? $"{driveInfo.VolumeLabel} ({driveInfo.Name.TrimEnd(Path.DirectorySeparatorChar)}"
+            : driveInfo.Name;
     }
 }
 
