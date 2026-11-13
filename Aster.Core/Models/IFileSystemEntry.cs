@@ -18,7 +18,7 @@ public class FileEntry : IFileSystemEntry
     public string Extension { get; }
     public string NameWoExtension { get; }
 
-    public FileEntry(string pathToEntry, IPathTool pathTool)
+    public FileEntry(string pathToEntry, IPathTools pathTool)
     {
         PathToEntry = pathToEntry;
         Name = pathTool.GetFileName(pathToEntry);
@@ -43,7 +43,7 @@ public class DirectoryEntry : IFileSystemEntry
     string IFileSystemEntry.Extension => string.Empty; 
     string IFileSystemEntry.NameWoExtension => Name;
 
-    public DirectoryEntry(string dirPath, IPathTool pathTool)
+    public DirectoryEntry(string dirPath, IPathTools pathTool)
     {
         PathToEntry = dirPath;
         Name = pathTool.GetFileName(dirPath);
@@ -96,7 +96,7 @@ public class DirectoryEntryInfo : DirectoryEntry
         LastModifiedUtc = lastModifiedUtc;
     }
 
-    private protected DirectoryEntryInfo(DirectoryInfo dirInfo) 
+    public DirectoryEntryInfo(DirectoryInfo dirInfo) 
         : base(dirInfo.FullName, dirInfo.Extension)
     {
         LastModifiedUtc = dirInfo.LastWriteTimeUtc;

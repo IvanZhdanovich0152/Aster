@@ -33,7 +33,7 @@ public sealed class DirectoryContents
 
 public interface IFileInfoProvider
 {
-    public IPathTool PathTool { get; }
+    public IPathTools PathTool { get; }
     
     public ValueResult<DirectoryContents> GetPathEntries(
         string path,
