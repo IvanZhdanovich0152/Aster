@@ -6,9 +6,7 @@ namespace Aster.Core.Models;
 
 public abstract class LocalFileInfoProvider : ILocalFileInfoProvider
 {
-    public virtual IPathTools PathTools => LocalPathTools.Instance;
-
-    public IPathTools PathTool { get; }
+    public IPathTools PathTool => LocalPathTools.Instance;
 
     public ValueResult<DirectoryContents> GetPathEntries(
         string path,
@@ -25,6 +23,11 @@ public abstract class LocalFileInfoProvider : ILocalFileInfoProvider
 
             foreach (FileSystemInfo entry in entries)
             {
+                bool isHidden = entry.Name.StartsWith(".", StringComparison.Ordinal) ||
+                                entry.Attributes.HasFlag(FileAttributes.Hidden);
+                if (!includeHidden && isHidden)
+                    continue;
+
                 if (entry is DirectoryInfo dEI)
                     dirs.Add(new DirectoryEntryInfo(dEI));
                 if (entry is FileInfo fEI)

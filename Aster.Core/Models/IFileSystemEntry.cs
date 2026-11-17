@@ -97,7 +97,7 @@ public class DirectoryEntryInfo : DirectoryEntry
     }
 
     public DirectoryEntryInfo(DirectoryInfo dirInfo) 
-        : base(dirInfo.FullName, dirInfo.Extension)
+        : base(dirInfo.FullName, dirInfo.Name)
     {
         LastModifiedUtc = dirInfo.LastWriteTimeUtc;
     }

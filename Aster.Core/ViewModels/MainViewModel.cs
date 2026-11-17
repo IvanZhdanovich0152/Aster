@@ -1,36 +1,42 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
 using Aster.Core.Models;
 using ReactiveUI;
 using ReactiveUI.Primitives;
 
 namespace Aster.Core.ViewModels;
 
-public class MainViewModel : ViewModelBase
+public sealed class MainViewModel : ViewModelBase
 {
-    private readonly IPlatformBootstrap _bootstrap;
-    private readonly IFileSystem _fileSystem;
-    private string _currentPath =  string.Empty;
-    
-    public ObservableCollection<IFileSystemEntry> Entries { get; } = new();
+    private readonly IPlatformBootstrap? _bootstrap;
+    private readonly IFileSystem? _fileSystem;
+    private string _currentPath = string.Empty;
+
+    public ObservableCollection<FileSystemEntryViewModel> Entries { get; } = new();
 
     public ReactiveCommand<RxVoid, RxVoid> RefreshCommand { get; }
-    
+
+    private string? _errorMessage;
+    public string? ErrorMessage
+    {
+        get => _errorMessage;
+        private set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
+    }
+
     public string CurrentPath
     {
         get => _currentPath;
-        set => this.RaiseAndSetIfChanged(ref _currentPath, value);
+        private set => this.RaiseAndSetIfChanged(ref _currentPath, value);
     }
-        
 
     public MainViewModel()
     {
         _bootstrap = App.Bootstrap;
-        _fileSystem = _bootstrap.CreateFileSystem();
-
+        _fileSystem = _bootstrap?.CreateFileSystem();
         RefreshCommand = ReactiveCommand.Create(LoadEntries);
+
+        if (_bootstrap is null || _fileSystem is null)
+            return;
 
         CurrentPath = _bootstrap.GetDefaultRootPath();
         LoadEntries();
@@ -38,11 +44,26 @@ public class MainViewModel : ViewModelBase
 
     private void LoadEntries()
     {
-        Entries.Clear();
-        foreach (var entry in _fileSystem.GetEntries(CurrentPath))
+        if (_fileSystem is null || string.IsNullOrWhiteSpace(CurrentPath))
+            return;
+
+        ErrorMessage = null;
+        ValueResult<DirectoryContents> result = _fileSystem.FileInfoProvider.GetPathEntries(
+            CurrentPath,
+            includeOs: true,
+            includeHidden: false);
+
+        if (!result.IsOk)
         {
-            Entries.Add(entry);
+            ErrorMessage = string.Join(Environment.NewLine, result.Errors);
+            return;
         }
-        Debug.WriteLine("Loaded " + Entries.Count);
+
+        Entries.Clear();
+        foreach (DirectoryEntryInfo directory in result.Value.Dirs)
+            Entries.Add(new FileSystemEntryViewModel(directory));
+        foreach (FileEntryInfo file in result.Value.Files)
+            Entries.Add(new FileSystemEntryViewModel(file));
     }
+
 }

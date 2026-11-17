@@ -1,10 +1,6 @@
 ﻿using Avalonia;
 using ReactiveUI.Avalonia;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using Aster.Core;
 using Aster.Core.Models;
 
@@ -38,7 +34,22 @@ public class LinuxPlatformBootstrap : IPlatformBootstrap
         var homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         return string.IsNullOrWhiteSpace(homePath) ? "/" : homePath;
     }
+    
 }
 
-public class LinuxFileSystem : IFileSystem;
+public sealed class LinuxFileSystem : IFileSystem
+{
+    public IFileInfoProvider FileInfoProvider { get; } = new LinuxFileInfoProvider();
+
+    public string GetLabel() => "linux";
+
+    public bool IsLocal() => true;
+}
+
+internal sealed class LinuxFileInfoProvider : LocalFileInfoProvider
+{
+    public override string GetRoot() => "/";
+
+    public override DriveEntryInfo[] GetDrives() => Array.Empty<DriveEntryInfo>();
+}
 
