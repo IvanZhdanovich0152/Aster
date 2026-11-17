@@ -26,29 +26,30 @@ public readonly struct ExistsInfo
 
 public sealed class DirectoryContents
 {
-    public required IReadOnlyList<DirectoryEntryInfo> Dirs { get; set; }
-    public required IReadOnlyList<FileEntryInfo> Files { get; set; }
+    public required IReadOnlyList<DirectoryEntryInfo> Dirs { get; init; }
+    public required IReadOnlyList<FileEntryInfo> Files { get; init; }
 }
 
 
 public interface IFileInfoProvider
 {
-    public IPathTools PathTool { get; }
+    IPathTools PathTools { get; }
     
-    public ValueResult<DirectoryContents> GetPathEntries(
+    ValueResult<DirectoryContents> GetPathEntries(
         string path,
-        bool includeOs,
-        bool includeHidden);
+        bool includeHidden,
+        bool includeOs);
 
-    public DateTime? GetFileLastWriteUtc(string path);
-    public DateTime? GetDirLastWriteUtc(string path);
+    DateTime? GetFileLastWriteUtc(string path);
+    DateTime? GetDirLastWriteUtc(string path);
+    bool IsHidden(string path, bool isDirectory);
 
-    public string GetRoot();
+    string GetRoot();
 
-    public ExistsInfo Exists(string path);
+    ExistsInfo Exists(string path);
 }
 
 public interface ILocalFileInfoProvider : IFileInfoProvider
 {
-    public DriveEntryInfo[] GetDrives();
+    DriveEntryInfo[] GetDrives();
 }

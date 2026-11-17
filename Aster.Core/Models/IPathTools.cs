@@ -2,12 +2,12 @@ namespace Aster.Core.Models;
 
 public interface IPathTools
 {
-    public char DirSeparator { get; }
-    public string GetParentDir(string path);
-    public string GetFullPath(string path);
-    public string GetFileName(string path);
-    public string GetExtension(string path);
-    
-    
-    
+    char DirSeparator { get; }
+    string Combine(string left, string right);
+    string GetParentDir(string path);
+    string GetFullPath(string path);
+    string GetFileName(string path);
+    string GetExtension(string path);
+    bool IsRoot(string path);
+    bool IsAbsolute(string path);
 }

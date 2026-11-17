@@ -28,22 +28,21 @@ internal static class Program
 public class LinuxPlatformBootstrap : IPlatformBootstrap
 {
 
-    public IFileSystem CreateFileSystem() => new LinuxFileSystem();
+    public IFileSystem CreateFileSystem()
+    {
+        LinuxFileInfoProvider fileInfoProvider = new();
+        return new LocalFileSystem
+        {
+            LocalFileInfoProvider = fileInfoProvider,
+            FileOperations = new LocalFileOperations(fileInfoProvider.PathTools)
+        };
+    }
     public string GetDefaultRootPath()
     {
         var homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         return string.IsNullOrWhiteSpace(homePath) ? "/" : homePath;
     }
     
-}
-
-public sealed class LinuxFileSystem : IFileSystem
-{
-    public IFileInfoProvider FileInfoProvider { get; } = new LinuxFileInfoProvider();
-
-    public string GetLabel() => "linux";
-
-    public bool IsLocal() => true;
 }
 
 internal sealed class LinuxFileInfoProvider : LocalFileInfoProvider

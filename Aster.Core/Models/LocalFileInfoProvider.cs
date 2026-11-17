@@ -1,17 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Aster.Core.Models;
 
 public abstract class LocalFileInfoProvider : ILocalFileInfoProvider
 {
-    public IPathTools PathTool => LocalPathTools.Instance;
+    public IPathTools PathTools => LocalPathTools.Instance;
 
     public ValueResult<DirectoryContents> GetPathEntries(
         string path,
-        bool includeOs,
-        bool includeHidden)
+        bool includeHidden,
+        bool includeOs)
     {
         try
         {
@@ -23,9 +24,9 @@ public abstract class LocalFileInfoProvider : ILocalFileInfoProvider
 
             foreach (FileSystemInfo entry in entries)
             {
-                bool isHidden = entry.Name.StartsWith(".", StringComparison.Ordinal) ||
-                                entry.Attributes.HasFlag(FileAttributes.Hidden);
-                if (!includeHidden && isHidden)
+                if (!includeHidden && IsHidden(entry.FullName, entry is DirectoryInfo))
+                    continue;
+                if (!includeOs && IsOsProtected(entry.FullName, entry is DirectoryInfo))
                     continue;
 
                 if (entry is DirectoryInfo dEI)
@@ -50,7 +51,7 @@ public abstract class LocalFileInfoProvider : ILocalFileInfoProvider
         {
             return File.GetLastWriteTimeUtc(path);
         }
-        catch (Exception e)
+        catch
         {
             return null;
         }
@@ -64,9 +65,39 @@ public abstract class LocalFileInfoProvider : ILocalFileInfoProvider
         {
             return Directory.GetLastWriteTimeUtc(path);
         }
-        catch (Exception e)
+        catch
         {
             return null;
+        }
+    }
+
+    public virtual bool IsHidden(string path, bool isDirectory)
+    {
+        try
+        {
+            return path.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries)
+                .Any(part => part.StartsWith(".", StringComparison.Ordinal)) ||
+                (isDirectory
+                    ? new DirectoryInfo(path).Attributes.HasFlag(FileAttributes.Hidden)
+                    : new FileInfo(path).Attributes.HasFlag(FileAttributes.Hidden));
+        }
+        catch
+        {
+            return true;
+        }
+    }
+
+    protected virtual bool IsOsProtected(string path, bool isDirectory)
+    {
+        try
+        {
+            return isDirectory
+                ? new DirectoryInfo(path).Attributes.HasFlag(FileAttributes.System)
+                : new FileInfo(path).Attributes.HasFlag(FileAttributes.System);
+        }
+        catch
+        {
+            return true;
         }
     }
 
