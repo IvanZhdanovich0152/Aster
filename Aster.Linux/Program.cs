@@ -34,7 +34,8 @@ public class LinuxPlatformBootstrap : IPlatformBootstrap
         return new LocalFileSystem
         {
             LocalFileInfoProvider = fileInfoProvider,
-            FileOperations = new LocalFileOperations(fileInfoProvider.PathTools)
+            FileOperations = new LocalFileOperations(fileInfoProvider.PathTools),
+            IconProvider = new LinuxIconProvider()
         };
     }
     public string GetDefaultRootPath()
