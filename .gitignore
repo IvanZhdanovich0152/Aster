@@ -3,7 +3,9 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
-idea/
+.idea/
+.idea/.idea.Aster/.idea/avalonia.xml
+.idea/.idea.Aster/.idea/indexLayout.xml
 
 # Default ignored files
 /shelf/

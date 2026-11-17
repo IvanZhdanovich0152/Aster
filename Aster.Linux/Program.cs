@@ -1,12 +1,8 @@
 ﻿using Avalonia;
 using ReactiveUI.Avalonia;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Aster.Core;
 using Aster.Core.Models;
-using Aster.Core.Views;
-using Aster.Core.ViewModels;
 
 
 namespace Aster.Linux;
@@ -32,16 +28,28 @@ internal static class Program
 public class LinuxPlatformBootstrap : IPlatformBootstrap
 {
 
-    public IFileSystem CreateFileSystem() => new LinuxFileSystem();
-    public string GetDefaultRootPath() => "/";
-}
-
-public class LinuxFileSystem : IFileSystem
-{
-    public IEnumerable<string> GetFiles(string path)
+    public IFileSystem CreateFileSystem()
     {
-        return new ObservableCollection<string> {"bin", "boot", "root", "usr" };
+        LinuxFileInfoProvider fileInfoProvider = new();
+        return new LocalFileSystem
+        {
+            LocalFileInfoProvider = fileInfoProvider,
+            FileOperations = new LocalFileOperations(fileInfoProvider.PathTools),
+            IconProvider = new LinuxIconProvider()
+        };
     }
-
-
+    public string GetDefaultRootPath()
+    {
+        var homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return string.IsNullOrWhiteSpace(homePath) ? "/" : homePath;
+    }
+    
 }
+
+internal sealed class LinuxFileInfoProvider : LocalFileInfoProvider
+{
+    public override string GetRoot() => "/";
+
+    public override DriveEntryInfo[] GetDrives() => Array.Empty<DriveEntryInfo>();
+}
+

@@ -2,14 +2,57 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Aster.Core.App"
              xmlns:local="using:Aster.Core"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
-
+             RequestedThemeVariant="Dark">
+    <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
 
     <Application.Styles>
         <FluentTheme />
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+        </Style>
+        <Style Selector="Button.nav-button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="Button.nav-button:pointerover">
+            <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource HoverBrush}" />
+        </Style>
     </Application.Styles>
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <!-- СВЕТЛАЯ ТЕМА -->
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="AppBackgroundBrush">#F9F9F9</SolidColorBrush>
+                    <SolidColorBrush x:Key="PanelBackgroundBrush">#FFFFFF</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextPrimaryBrush">#1F1F1F</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextSecondaryBrush">#606060</SolidColorBrush>
+                    <SolidColorBrush x:Key="BorderBrush">#E1E1E1</SolidColorBrush>
+                    <SolidColorBrush x:Key="HoverBrush">#E5F3FF</SolidColorBrush>
+                    <SolidColorBrush x:Key="ErrorBrush">#B42318</SolidColorBrush>
+                </ResourceDictionary>
+
+                <!-- ТЕМНАЯ ТЕМА -->
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="AppBackgroundBrush">#141414</SolidColorBrush>
+                    <SolidColorBrush x:Key="PanelBackgroundBrush">#1E1E1E</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextPrimaryBrush">#D4D4D4</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextSecondaryBrush">#969696</SolidColorBrush>
+                    <SolidColorBrush x:Key="BorderBrush">#333333</SolidColorBrush>
+                    <SolidColorBrush x:Key="HoverBrush">#2A2D2E</SolidColorBrush>
+                    <SolidColorBrush x:Key="ErrorBrush">#FF7B72</SolidColorBrush>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
 </Application>
