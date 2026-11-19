@@ -1,0 +1,169 @@
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Avalonia.Controls;
+using Avalonia.Threading;
+using Aster.Core.Views.Dialogs;
+
+namespace Aster.Core.Services.Dialogs;
+
+public sealed class AvaloniaDialogService : IDialogService
+{
+    private const int ShowOpDialogDelayMs = 750;
+
+    private readonly Window _parentWindow;
+    
+    public AvaloniaDialogService(Window parentWindow) => _parentWindow = parentWindow;
+
+    public void InfoDialog(string title, string info) =>
+        Dispatcher.UIThread.Post(() =>
+        {
+            new InfoDialogWindow { Title = title, Message = info }.ShowDialog(_parentWindow);
+        });
+
+    private static async Task<T> ProgressDialogInternal<T>(
+        string title,
+        Task<T> opTask,
+        ProgressReporter reporter,
+        CancellationTokenSource? cts
+    )
+    {
+        Task waitTask = Task.Delay(ShowOpDialogDelayMs);
+        await Task.WhenAny(opTask, waitTask);
+        if (opTask.IsCompleted)
+        {
+            cts?.Dispose();
+            return await opTask;
+        }
+
+        bool dialogClosedByUser = false;
+        ProgressDialogWindow dialog = new()
+        {
+            Title = title,
+            Reporter = reporter,
+            Cts = cts,
+        };
+        dialog.Closed += (_, _) => dialogClosedByUser = true;
+
+        await Dispatcher.UIThread.InvokeAsync(dialog.Show);
+
+        try
+        {
+            return await opTask;
+        }
+        finally
+        {
+            if (!dialogClosedByUser)
+                await Dispatcher.UIThread.InvokeAsync(dialog.Close);
+            cts?.Dispose();
+        }
+    }
+
+    private async Task<T> LockWindowWithDialog<T>(
+        string title,
+        Task<T> opTask,
+        ProgressReporter reporter,
+        CancellationTokenSource? cts
+    )
+    {
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _parentWindow.IsHitTestVisible = false;
+        });
+
+        try
+        {
+            return await ProgressDialogInternal(title, opTask, reporter, cts);
+        }
+        finally
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _parentWindow.IsHitTestVisible = true;
+            });
+        }
+    }
+
+    public Task<T> BlockingDialogAsync<T>(string title, AsyncOperation<T> operation)
+    {
+        Task<T> opTask = operation();
+        return LockWindowWithDialog(title, opTask, ProgressReporter.None, null);
+    }
+
+    public Task<T> BlockingDialogAsync<T>(string title, CancellableOperation<T> operation)
+    {
+        CancellationTokenSource cts = new();
+        Task<T> opTask = operation(cts.Token);
+        return LockWindowWithDialog(title, opTask, ProgressReporter.None, cts);
+    }
+
+    public Task<T> BlockingDialogAsync<T>(string title, ReportingOperation<T> operation)
+    {
+        ProgressReporter reporter = new();
+        CancellationTokenSource cts = new();
+        Task<T> opTask = operation(reporter, cts.Token);
+        return LockWindowWithDialog(title, opTask, reporter, cts);
+    }
+
+    public Task<T> BackgroundDialogAsync<T>(string title, AsyncOperation<T> operation)
+    {
+        Task<T> opTask = operation();
+        return ProgressDialogInternal(title, opTask, ProgressReporter.None, null);
+    }
+
+    public Task<T> BackgroundDialogAsync<T>(string title, CancellableOperation<T> operation)
+    {
+        CancellationTokenSource cts = new();
+        Task<T> opTask = operation(cts.Token);
+        return ProgressDialogInternal(title, opTask, ProgressReporter.None, cts);
+    }
+
+    public Task<T> BackgroundDialogAsync<T>(string title, ReportingOperation<T> operation)
+    {
+        ProgressReporter reporter = new();
+        CancellationTokenSource cts = new();
+        Task<T> opTask = operation(reporter, cts.Token);
+        return ProgressDialogInternal(title, opTask, reporter, cts);
+    }
+
+    public async Task<bool> ConfirmationDialogAsync(string title, string question)
+    {
+        bool? result = await Dispatcher.UIThread.InvokeAsync(async () =>
+            await new ConfirmationDialogWindow
+            {
+                Title = title,
+                Question = question,
+            }.ShowDialog<bool?>(_parentWindow)
+        );
+        return result is true;
+    }
+
+    public Task<string?> InputDialogAsync(string title, string context, bool secret) =>
+        Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            InputDialogWindow dialog = new() { Title = title, Context = context };
+            dialog.HideInput(secret);
+
+            string? result = await dialog.ShowDialog<string?>(_parentWindow);
+            return string.IsNullOrEmpty(result) ? null : result;
+        });
+
+    public Task<string?> SuggestInputDialogAsync(
+        string title,
+        string context,
+        string suggestionLabel,
+        IEnumerable<string> options
+    ) =>
+        Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            SuggestInputDialogWindow dialog = new()
+            {
+                Title = title,
+                Context = context,
+                Options = options,
+                SuggestionLabel = suggestionLabel,
+            };
+            string? result = await dialog.ShowDialog<string?>(_parentWindow);
+            return string.IsNullOrEmpty(result) ? null : result;
+        });
+}
