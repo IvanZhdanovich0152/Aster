@@ -12,7 +12,7 @@ using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Aster.Core.ViewModels;
-using Aster.Core.Views.Helpers;
+using Aster.Core.Views.Helpers; 
 
 namespace Aster.Core.Views;
 
@@ -148,7 +148,7 @@ public partial class MainWindow : Window
         GoBackButton.ContextFlyout?.Hide();
         GoForwardButton.ContextFlyout?.Hide();
         if (e.AddedItems is [LocationDisplay location])
-            _viewModel?.GoBackCommand.Execute(location).Subscribe();
+            _viewModel?.GoBackCommand.Execute(location);
     }
     
     private void GoForwardTapped(object? sender, SelectionChangedEventArgs e)
@@ -156,7 +156,7 @@ public partial class MainWindow : Window
         GoBackButton.ContextFlyout?.Hide();
         GoForwardButton.ContextFlyout?.Hide();
         if (e.AddedItems is [LocationDisplay location])
-            _viewModel?.GoForwardCommand.Execute(location).Subscribe();
+            _viewModel?.GoForwardCommand.Execute(location);
     }
 
     private void FilesDoubleTapped(object sender, TappedEventArgs e)
@@ -173,9 +173,9 @@ public partial class MainWindow : Window
             }
 
             if (listBox.SelectedItem is FileSystemEntryViewModel entry)
-                _viewModel?.OpenEntryCommand.Execute(entry).Subscribe();
+                _viewModel?.OpenEntryCommand.Execute(entry);
             else
-                _viewModel?.GoUpCommand.Execute().Subscribe();
+                _viewModel?.GoUpCommand.Execute();
         }
     }
 
@@ -204,13 +204,12 @@ public partial class MainWindow : Window
         }
         _viewModel?.SelectedFiles.Clear();
         NewNameBar.IsVisible = false;
-        CommitMessageBar.IsVisible = false;
     }
 
     private void SideBarEntryClicked(object sender, TappedEventArgs e)
     {
         if (sender is ListBox { SelectedItem: SideBarEntryViewModel entry })
-            _viewModel?.OpenSideBarEntryCommand.Execute(entry).Subscribe();
+            _viewModel?.OpenSideBarEntryCommand.Execute(entry);
 
         ClearFocus();
     }
@@ -219,10 +218,10 @@ public partial class MainWindow : Window
     {
         PointerPointProperties properties = e.GetCurrentPoint(this).Properties;
         if (properties.IsXButton1Pressed)
-            _viewModel?.GoBackCommand.Execute(null).Subscribe();
+            _viewModel?.GoBackCommand.Execute(null);
 
         if (properties.IsXButton2Pressed)
-            _viewModel?.GoForwardCommand.Execute(null).Subscribe();
+            _viewModel?.GoForwardCommand.Execute(null);
     }
 
     private void OnRenameClicked(object sender, RoutedEventArgs e)
@@ -265,7 +264,7 @@ public partial class MainWindow : Window
     {
         if (NameInputBox.Text is string newName)
         {
-            _viewModel?.RenameCommand.Execute(newName).Subscribe();
+            _viewModel?.RenameCommand.Execute(newName);
             NewNameBar.IsVisible = false;
             NameInputBox.Text = string.Empty;
         }
@@ -299,7 +298,7 @@ public partial class MainWindow : Window
             button.HotKey = null;
     }
     
-    protected override void OnGotFocus(GotFocusEventArgs e)
+    protected override void OnGotFocus(FocusChangedEventArgs e)
     {
         base.OnGotFocus(e);
         if (e.Source is TextBox)
@@ -313,7 +312,7 @@ public partial class MainWindow : Window
             button.HotKey = gesture;
     }
 
-    protected override void OnLostFocus(RoutedEventArgs e)
+    protected override void OnLostFocus(FocusChangedEventArgs e)
     {
         base.OnLostFocus(e);
         if (e.Source is TextBox)
@@ -370,7 +369,7 @@ public partial class MainWindow : Window
     private void OnEnterPressed(KeyEventArgs e)
     {
         e.Handled = true;
-        if (NewNameBar.IsVisible || CommitMessageBar.IsVisible)
+        if (NewNameBar.IsVisible)
         {
             if (NewNameBar.IsVisible)
                 NameEntered();
@@ -381,7 +380,7 @@ public partial class MainWindow : Window
         if (PathBox.IsFocused)
         {
             if (PathBox.Text is string path)
-                _viewModel?.SetNewLocationCommand.Execute(path).Subscribe();
+                _viewModel?.SetNewLocationCommand.Execute(path);
             ClearFocus();
             return;
         }
@@ -390,13 +389,13 @@ public partial class MainWindow : Window
         {
             if (SearchBox.IsFocused && !string.IsNullOrWhiteSpace(SearchBox.Text))
             {
-                _viewModel?.SearchCommand.Execute(SearchBox.Text).Subscribe();
+                _viewModel?.SearchCommand.Execute(SearchBox.Text);
                 ClearFocus();
             }
             else if (_viewModel.SelectedFiles.Count == 1)
-                _viewModel.OpenEntryCommand.Execute(_viewModel.SelectedFiles[0]).Subscribe();
+                _viewModel.OpenEntryCommand.Execute(_viewModel.SelectedFiles[0]);
             else if (_viewModel.SelectedFiles.Count > 1)
-                _viewModel.OpenEntriesCommand.Execute().Subscribe();
+                _viewModel.OpenEntriesCommand.Execute();
         }
     }
 

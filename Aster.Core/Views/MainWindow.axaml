@@ -12,7 +12,7 @@
         x:DataType="vm:MainWindowViewModel"
         Closing="OnClosing"
         DataContextChanged="ViewModelLoaded"
-        Icon="/Assets/aster.png"
+        Icon="/Assets/aster.ico"
         PointerPressed="MouseButtonPressed"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
