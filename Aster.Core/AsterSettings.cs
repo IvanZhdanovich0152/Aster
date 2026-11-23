@@ -130,6 +130,26 @@ public static class AsterSettings
     public static List<string> QuickAccess { get; set; }
 
     public static bool SyncHiddenFiles { get; set; }
+    
+    public static void Initialize(IDefaultSettingsProvider settingsProvider)
+    {
+       SettingsRecord.Initialize(settingsProvider);
+        try
+        {
+            _previousSettingsJson = File.ReadAllText(SettingsFilePath, Encoding.UTF8);
+            SettingsRecord settings =
+                JsonSerializer.Deserialize<SettingsRecord>(
+                    _previousSettingsJson,
+                    SettingsRecord.SerializerOptions
+                ) ?? throw new InvalidDataException();
+
+            ImportSettings(settings);
+        }
+        catch
+        {
+            ImportSettings(DefaultSettings);
+        }
+    }
 
     public static void ImportSettings(SettingsRecord settings)
     {

@@ -680,6 +680,18 @@ public sealed partial class MainWindowViewModel
     private void ShowProperties(FileSystemEntryViewModel entry) =>
         ShowIfError(CurrentLocation.FileSystem.FileProperties.ShowFileProperties(entry));
     
+    private Task RenameAsync(string newName)
+    {
+        newName = newName.Trim();
+
+        if (SelectedFiles.Count == 1)
+            return RenameOneAsync(newName);
+        if (SelectedFiles.Count > 1)
+            return RenameMultipleAsync(newName);
+
+        return Task.CompletedTask;
+    }
+    
     private async Task RenameOneAsync(string newName)
     {
         Location current = CurrentLocation;
