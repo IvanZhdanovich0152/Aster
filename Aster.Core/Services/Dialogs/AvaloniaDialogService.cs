@@ -21,6 +21,11 @@ public sealed class AvaloniaDialogService : IDialogService
             new InfoDialogWindow { Title = title, Message = info }.ShowDialog(_parentWindow);
         });
 
+    public Task PreviewDialogAsync(FilePreviewData preview) =>
+        Dispatcher.UIThread.InvokeAsync(async () =>
+            await new PreviewWindow(preview).ShowDialog(_parentWindow)
+        );
+
     private static async Task<T> ProgressDialogInternal<T>(
         string title,
         Task<T> opTask,

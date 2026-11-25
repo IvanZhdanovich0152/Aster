@@ -21,6 +21,18 @@ public class LinuxFileInfoProvider : LocalFileInfoProvider
 
     public LinuxFileInfoProvider(IShellHandler shellHandler) => _shellHandler = shellHandler;
 
+    protected override UnixFileMode? GetUnixMode(string path)
+    {
+        try
+        {
+            return File.GetUnixFileMode(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
     [SuppressMessage("ReSharper", "ClassNeverInstantiated.Local")]
     private sealed record LsblkEntry(string? Label, string? MountPoint, long Size, string? Type);
 

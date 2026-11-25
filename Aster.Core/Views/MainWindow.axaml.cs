@@ -13,6 +13,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Aster.Core.ViewModels;
 using Aster.Core.Views.Helpers; 
+using ICommand = System.Windows.Input.ICommand;
 
 namespace Aster.Core.Views;
 
@@ -148,7 +149,7 @@ public partial class MainWindow : Window
         GoBackButton.ContextFlyout?.Hide();
         GoForwardButton.ContextFlyout?.Hide();
         if (e.AddedItems is [LocationDisplay location])
-            _viewModel?.GoBackCommand.Execute(location);
+            ExecuteCommand(_viewModel?.GoBackCommand, location);
     }
     
     private void GoForwardTapped(object? sender, SelectionChangedEventArgs e)
@@ -156,7 +157,7 @@ public partial class MainWindow : Window
         GoBackButton.ContextFlyout?.Hide();
         GoForwardButton.ContextFlyout?.Hide();
         if (e.AddedItems is [LocationDisplay location])
-            _viewModel?.GoForwardCommand.Execute(location);
+            ExecuteCommand(_viewModel?.GoForwardCommand, location);
     }
 
     private void FilesDoubleTapped(object sender, TappedEventArgs e)
@@ -173,9 +174,9 @@ public partial class MainWindow : Window
             }
 
             if (listBox.SelectedItem is FileSystemEntryViewModel entry)
-                _viewModel?.OpenEntryCommand.Execute(entry);
+                ExecuteCommand(_viewModel?.OpenEntryCommand, entry);
             else
-                _viewModel?.GoUpCommand.Execute();
+                ExecuteCommand(_viewModel?.GoUpCommand);
         }
     }
 
@@ -209,7 +210,7 @@ public partial class MainWindow : Window
     private void SideBarEntryClicked(object sender, TappedEventArgs e)
     {
         if (sender is ListBox { SelectedItem: SideBarEntryViewModel entry })
-            _viewModel?.OpenSideBarEntryCommand.Execute(entry);
+            ExecuteCommand(_viewModel?.OpenSideBarEntryCommand, entry);
 
         ClearFocus();
     }
@@ -218,10 +219,10 @@ public partial class MainWindow : Window
     {
         PointerPointProperties properties = e.GetCurrentPoint(this).Properties;
         if (properties.IsXButton1Pressed)
-            _viewModel?.GoBackCommand.Execute(null);
+            ExecuteCommand(_viewModel?.GoBackCommand);
 
         if (properties.IsXButton2Pressed)
-            _viewModel?.GoForwardCommand.Execute(null);
+            ExecuteCommand(_viewModel?.GoForwardCommand);
     }
 
     private void OnRenameClicked(object sender, RoutedEventArgs e)
@@ -264,7 +265,7 @@ public partial class MainWindow : Window
     {
         if (NameInputBox.Text is string newName)
         {
-            _viewModel?.RenameCommand.Execute(newName);
+            ExecuteCommand(_viewModel?.RenameCommand, newName);
             NewNameBar.IsVisible = false;
             NameInputBox.Text = string.Empty;
         }
@@ -380,7 +381,7 @@ public partial class MainWindow : Window
         if (PathBox.IsFocused)
         {
             if (PathBox.Text is string path)
-                _viewModel?.SetNewLocationCommand.Execute(path);
+                ExecuteCommand(_viewModel?.SetNewLocationCommand, path);
             ClearFocus();
             return;
         }
@@ -389,13 +390,13 @@ public partial class MainWindow : Window
         {
             if (SearchBox.IsFocused && !string.IsNullOrWhiteSpace(SearchBox.Text))
             {
-                _viewModel?.SearchCommand.Execute(SearchBox.Text);
+                ExecuteCommand(_viewModel.SearchCommand, SearchBox.Text);
                 ClearFocus();
             }
             else if (_viewModel.SelectedFiles.Count == 1)
-                _viewModel.OpenEntryCommand.Execute(_viewModel.SelectedFiles[0]);
+                ExecuteCommand(_viewModel.OpenEntryCommand, _viewModel.SelectedFiles[0]);
             else if (_viewModel.SelectedFiles.Count > 1)
-                _viewModel.OpenEntriesCommand.Execute();
+                ExecuteCommand(_viewModel.OpenEntriesCommand);
         }
     }
 
@@ -404,6 +405,12 @@ public partial class MainWindow : Window
         e.Handled = true;
         _viewModel?.SelectedFiles.Clear();
         ClearFocus();
+    }
+
+    private static void ExecuteCommand(ICommand? command, object? parameter = null)
+    {
+        if (command?.CanExecute(parameter) == true)
+            command.Execute(parameter);
     }
     
     private void OnClosing(object? sender, WindowClosingEventArgs? e)

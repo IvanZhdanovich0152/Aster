@@ -3,7 +3,7 @@
     <Style Selector="Window.DialogWindow">
         <Setter Property="Background" Value="{DynamicResource PrimaryColor}" />
         <Setter Property="CanResize" Value="True" />
-        <Setter Property="Icon" Value="/Assets/aster.png" />
+        <Setter Property="Icon" Value="/Assets/aster.ico" />
         <Setter Property="ShowInTaskbar" Value="False" />
         <Setter Property="WindowStartupLocation" Value="CenterOwner" />
         <Setter Property="VerticalContentAlignment" Value="Stretch" />

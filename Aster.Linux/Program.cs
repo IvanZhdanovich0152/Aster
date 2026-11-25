@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Avalonia;
 using Avalonia.Input.Platform;
@@ -11,6 +12,7 @@ using Aster.Core.ViewModels;
 using Aster.Core.Views;
 using Aster.Linux.Models.FileInformation;
 using Aster.Linux.Services.FileOperations;
+using Aster.Linux.Services.Logging;
 using Aster.Linux.Services.Shell;
 using ReactiveUI.Avalonia;
 
@@ -24,8 +26,11 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        using FileTraceLogger logger = FileTraceLogger.Initialize();
+        Trace.TraceInformation("Aster application starting.");
         App.Bootstrap = new LinuxPlatformBootstrap();
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        Trace.TraceInformation("Aster application stopped.");
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
@@ -66,7 +71,7 @@ public class LinuxPlatformBootstrap : IPlatformBootstrap
     public MainWindowViewModel GetViewModel(
         string initialDir,
         MainWindow mainWindow,
-        Action<bool> setDarkMode
+        Action<AppThemeMode> setThemeMode
     )
     {
         LinuxFileInfoProvider fileInfoProvider = new(LinuxShellHandler);
@@ -88,7 +93,7 @@ public class LinuxPlatformBootstrap : IPlatformBootstrap
             new AvaloniaClipboardProxy(clipboard, mainWindow.StorageProvider),
             localFileSystem
         );
-        return new MainWindowViewModel(initialDir, localFileSystem, dialogService, setDarkMode)
+        return new MainWindowViewModel(initialDir, localFileSystem, dialogService, setThemeMode)
         {
             ClipboardManager = clipboardManager,
         };

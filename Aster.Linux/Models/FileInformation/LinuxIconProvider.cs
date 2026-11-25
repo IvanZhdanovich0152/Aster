@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,8 +8,6 @@ using Avalonia.Media.Imaging;
 using Aster.Core.Models;
 using Aster.Core.Models.FileInformation;
 using Aster.Core.Services.Shell;
-using MimeDetective;
-using MimeDetective.Engine;
 
 namespace Aster.Linux.Models.FileInformation;
 
@@ -18,15 +15,6 @@ public sealed class LinuxIconProvider : BaseIconProvider
 {
     private const string GenericMimeType = "unknown";
     private const int SvgSize = 128;
-    private static readonly Task<IContentInspector> MimeInspectorTask = Task.Run(() =>
-        new ContentInspectorBuilder
-        {
-            Definitions = new MimeDetective.Definitions.ExhaustiveBuilder
-            {
-                UsageType = MimeDetective.Definitions.Licensing.UsageType.PersonalNonCommercial,
-            }.Build(),
-        }.Build()
-    );
 
     private readonly IShellHandler _shellHandler;
     private readonly IReadOnlyList<string> _searchPaths;
@@ -67,6 +55,9 @@ public sealed class LinuxIconProvider : BaseIconProvider
 
     private async Task<string> GetMimeTypeAsync(string filePath)
     {
+        if (!File.Exists(filePath))
+            return GenericMimeType;
+
         string? extension = null;
         foreach (string ext in LocalPathTools.EnumerateExtensions(filePath))
         {
@@ -75,21 +66,7 @@ public sealed class LinuxIconProvider : BaseIconProvider
                 return mime;
         }
 
-        string mimeType;
-        try
-        {
-            IContentInspector inspector = await MimeInspectorTask;
-            ImmutableArray<MimeTypeMatch> result = await Task.Run(() =>
-                inspector.Inspect(filePath).ByMimeType()
-            );
-            mimeType = result.IsEmpty
-                ? await GetXdgMimeTypeAsync(filePath)
-                : NormalizeMime(result[0].MimeType);
-        }
-        catch
-        {
-            mimeType = GenericMimeType;
-        }
+        string mimeType = await GetXdgMimeTypeAsync(filePath);
         if (!string.IsNullOrEmpty(extension) && mimeType != GenericMimeType)
             _extToMime.TryAdd(extension, mimeType);
 

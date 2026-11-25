@@ -16,43 +16,38 @@ public class LinuxBinInteraction : IBinInteraction
 
     private IResult RestoreEntry(string originalPath)
     {
-        ValueResult<string> result = _shellHandler.ExecuteCommand("trash-list");
+        ValueResult<string> result = _shellHandler.ExecuteCommand("gio", "trash", "--list");
         if (!result.IsOk)
-            return SimpleResult.Error("Failed to access system trash.");
+            return SimpleResult.Error(
+                $"Failed to access system trash: {string.Join(" ", result.Errors)}"
+            );
 
         if (string.IsNullOrEmpty(result.Value))
             return SimpleResult.Error("Trash list is empty.");
 
-        int newestIndex = GetNewestIndex(result.Value, originalPath);
-        if (newestIndex < 0)
-            return SimpleResult.Error($"Could not find \"{originalPath}\" in trash.");
-
-        return _shellHandler.ExecuteShellCommand(
-            $"echo {newestIndex} | trash-restore \"$1\"",
-            originalPath
-        );
-    }
-
-    private static int GetNewestIndex(string stdOut, string originalPath)
-    {
-        originalPath = LocalPathTools.NormalizePath(originalPath);
-        StringReader reader = new(stdOut);
-
-        int index = -1;
+        string normalizedOriginalPath = LocalPathTools.NormalizePath(originalPath);
+        string? trashUri = null;
+        using StringReader reader = new(result.Value);
         while (reader.ReadLine() is string line)
         {
-            int secondSpaceIdx = line.IndexOf(' ', line.IndexOf(' ') + 1);
-            string path = line[(secondSpaceIdx + 1)..];
-
+            string[] fields = line.Split('\t', 2);
             if (
-                LocalPathTools.PathsAreEqualNormalized(
-                    LocalPathTools.NormalizePath(path),
-                    originalPath
+                fields.Length == 2
+                && LocalPathTools.PathsAreEqualNormalized(
+                    LocalPathTools.NormalizePath(fields[1]),
+                    normalizedOriginalPath
                 )
             )
-                index++;
+            {
+                trashUri = fields[0];
+                break;
+            }
         }
-        return index;
+
+        if (trashUri is null)
+            return SimpleResult.Error($"Could not find \"{originalPath}\" in trash.");
+
+        return _shellHandler.ExecuteCommand("gio", "trash", "--restore", trashUri);
     }
 
     public IResult MoveFileToTrash(string filePath) => MoveEntryToTrash(filePath);
@@ -60,7 +55,7 @@ public class LinuxBinInteraction : IBinInteraction
     public IResult MoveDirToTrash(string dirPath) => MoveEntryToTrash(dirPath);
 
     private ValueResult<string> MoveEntryToTrash(string path) =>
-        _shellHandler.ExecuteCommand("trash-put", path);
+        _shellHandler.ExecuteCommand("gio", "trash", path);
 
     public void Dispose() { }
 }

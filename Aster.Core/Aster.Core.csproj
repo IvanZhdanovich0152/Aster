@@ -28,4 +28,10 @@
         <PackageReference Include="ReactiveUI.Avalonia" Version="12.1.4"/>
         <PackageReference Include="SharpCompress" Version="0.50.10" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Views\Dialogs\PreviewWindow.axaml.cs">
+        <DependentUpon>PreviewWindow.axaml</DependentUpon>
+      </Compile>
+    </ItemGroup>
 </Project>

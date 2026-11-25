@@ -13,7 +13,7 @@
         Background="{DynamicResource PrimaryColor}"
         CanResize="True"
         Foreground="{DynamicResource TextColor}"
-        Icon="/Assets/aster.png"
+        Icon="/Assets/aster.ico"
         KeyDown="KeyPressed"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
@@ -68,7 +68,15 @@
                     <StackPanel Spacing="12">
                         <TextBlock Classes="Section" Text="Appearance" />
 
-                        <CheckBox VerticalAlignment="Center" Content="Use Dark Mode" IsChecked="{Binding UseDarkMode}" />
+                        <Grid ColumnDefinitions="140 *">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Color Theme:" />
+                            <ComboBox Grid.Column="1"
+                                      Width="150"
+                                      Margin="5 0 0 0"
+                                      HorizontalAlignment="Left"
+                                      ItemsSource="{Binding ThemeModeOptions}"
+                                      SelectedItem="{Binding ThemeMode}" />
+                        </Grid>
 
                         <Grid Margin="0 5 0 5" ColumnDefinitions="140 *">
                             <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="File Size Unit Limit:" />

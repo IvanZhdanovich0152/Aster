@@ -50,6 +50,8 @@ public record LocationDisplay
 
 public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
 {
+    private readonly List<IDisposable> _commandExceptionSubscriptions = [];
+
     private const string EmptyDirMessage = "This directory is empty.";
     private const string EmptySearchMessage = "No items match your query";
     private const string NoRemoteMark = "-";
@@ -60,7 +62,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
     private readonly SearchManager _searchManager;
     private readonly LocalFileSystem _localFs;
     private readonly IDialogService _dialogService;
-    private readonly Action<bool> _setDarkMode;
+    private readonly Action<AppThemeMode> _setThemeMode;
 
     private readonly List<string> _localPathsOrdered = new();
     private readonly HashSet<string> _localPaths = new();
@@ -89,13 +91,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
 
     public ObservableCollection<SideBarEntryViewModel> Drives { get; } = [];
     
-    public string CurrentFsLabel
-    {
-        get => _currentFsLabel;
-        set => this.RaiseAndSetIfChanged(ref _currentFsLabel, value);
-    }
-    private string _currentFsLabel = string.Empty;
-
     public string PathBoxText
     {
         get => _pathBoxText;
@@ -112,7 +107,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
         {
             _currentLocation = value;
             PathBoxText = value.Path;
-            CurrentFsLabel = value.FileSystem.GetLabel();
             if (AsterSettings.OpenInLastLocation && value.FileSystem.IsLocal())
                 AsterSettings.OpenIn = value.Path;
 
@@ -206,6 +200,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
 
     public ReactiveCommand<RxVoid, RxVoid> CopyCommand { get; }
 
+    public ReactiveCommand<RxVoid, RxVoid> PreviewCommand { get; }
+
     public ReactiveCommand<FileSystemEntryViewModel?, Task> CopyPathCommand { get; }
 
     public ReactiveCommand<FileSystemEntryViewModel, RxVoid> CreateShortcutCommand { get; }
@@ -218,7 +214,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
 
     public ReactiveCommand<RxVoid, Task> PasteCommand { get; }
 
-    public ReactiveCommand<RxVoid, Task> MoveToTrashCommand { get; }
+    public ReactiveCommand<RxVoid, RxVoid> MoveToTrashCommand { get; }
 
     public ReactiveCommand<RxVoid, RxVoid> DeleteCommand { get; }
 
@@ -248,13 +244,13 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
         string initialDir,
         LocalFileSystem localFs,
         IDialogService dialogService,
-        Action<bool> setDarkMode
+        Action<AppThemeMode> setThemeMode
     )
     {
         _localFs = localFs;
         CurrentLocation = new Location(_localFs, _localFs.LocalFileInfoProvider.GetRoot()); // Placeholder
         _dialogService = dialogService;
-        _setDarkMode = setDarkMode;
+        _setThemeMode = setThemeMode;
 
         _searchManager = new SearchManager(s => PathBoxText = s, entry => FileEntries.Add(entry));
         _undoRedoHistory = new UndoRedoHandler<IUndoableFileOperation>();
@@ -271,6 +267,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
         IObservable<bool> local = this.WhenAnyValue(x => x.IsLocal);
         IObservable<bool> notSearching = this.WhenAnyValue(x => x.NotSearching);
         IObservable<bool> selection = this.WhenAnyValue(x => x.SelectionNotEmpty);
+        IObservable<bool> singleSelection = this.WhenAnyValue(x => x.SelectedFiles.Count)
+            .Select(count => count == 1);
         IObservable<bool> localNotSearching = local.CombineLatest(notSearching, (l, nS) => l && nS);
         IObservable<bool> localSelection = local.CombineLatest(selection, (l, sl) => l && sl);
         IObservable<bool> notLocalNotSearching = local.CombineLatest(
@@ -313,6 +311,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
         RenameCommand = ReactiveCommand.CreateFromTask<string>(RenameAsync, selection);
         CutCommand = ReactiveCommand.CreateFromTask(CutAsync, selection);
         CopyCommand = ReactiveCommand.CreateFromTask(CopyAsync, selection);
+        PreviewCommand = ReactiveCommand.CreateFromTask(PreviewSelectedAsync, singleSelection);
         CopyPathCommand = ReactiveCommand.Create<FileSystemEntryViewModel?, Task>(CopyPathAsync);
         CreateShortcutCommand = ReactiveCommand.Create<FileSystemEntryViewModel>(CreateShortcut);
         FlattenFolderCommand = ReactiveCommand.Create<FileSystemEntryViewModel, Task>(
@@ -321,7 +320,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
         ShowPropertiesCommand = ReactiveCommand.Create<FileSystemEntryViewModel>(ShowProperties);
         
         PasteCommand = ReactiveCommand.Create(PasteAsync, notSearching);
-        MoveToTrashCommand = ReactiveCommand.Create(MoveToTrashAsync, localSelection);
+        MoveToTrashCommand = ReactiveCommand.CreateFromTask(MoveToTrashAsync, localSelection);
         DeleteCommand = ReactiveCommand.CreateFromTask(Delete, selection);
         SetSortByCommand = ReactiveCommand.CreateFromTask<SortBy>(SetSortBy);
         UndoCommand = ReactiveCommand.CreateFromTask(UndoAsync);
@@ -337,6 +336,61 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
         AsterSettings.OnSettingsChange = () => LoadSettings(true);
         SelectedFiles.CollectionChanged += UpdateSelectionInfo;
         FileEntries.CollectionChanged += UpdateSelectionInfo;
+    }
+
+    public void ObserveCommandExceptions(Action<Exception> onException)
+    {
+        IObserver<Exception> observer = new ExceptionObserver(onException);
+        foreach (IObservable<Exception> exceptions in GetCommandExceptionStreams())
+            _commandExceptionSubscriptions.Add(exceptions.Subscribe(observer));
+    }
+
+    private IEnumerable<IObservable<Exception>> GetCommandExceptionStreams()
+    {
+        yield return OpenEntriesCommand.ThrownExceptions;
+        yield return OpenEntryCommand.ThrownExceptions;
+        yield return OpenSideBarEntryCommand.ThrownExceptions;
+        yield return OpenAsCommand.ThrownExceptions;
+        yield return SetNewLocationCommand.ThrownExceptions;
+        yield return OpenInNotepadCommand.ThrownExceptions;
+        yield return AddToQuickAccessCommand.ThrownExceptions;
+        yield return AddToArchiveCommand.ThrownExceptions;
+        yield return ExtractArchiveCommand.ThrownExceptions;
+        yield return GoBackCommand.ThrownExceptions;
+        yield return GoForwardCommand.ThrownExceptions;
+        yield return GoUpCommand.ThrownExceptions;
+        yield return ReloadCommand.ThrownExceptions;
+        yield return OpenTerminalCommand.ThrownExceptions;
+        yield return SearchCommand.ThrownExceptions;
+        yield return CancelSearchCommand.ThrownExceptions;
+        yield return NewFileCommand.ThrownExceptions;
+        yield return NewDirCommand.ThrownExceptions;
+        yield return RenameCommand.ThrownExceptions;
+        yield return CutCommand.ThrownExceptions;
+        yield return CopyCommand.ThrownExceptions;
+        yield return PreviewCommand.ThrownExceptions;
+        yield return CopyPathCommand.ThrownExceptions;
+        yield return CreateShortcutCommand.ThrownExceptions;
+        yield return FlattenFolderCommand.ThrownExceptions;
+        yield return ShowPropertiesCommand.ThrownExceptions;
+        yield return PasteCommand.ThrownExceptions;
+        yield return MoveToTrashCommand.ThrownExceptions;
+        yield return DeleteCommand.ThrownExceptions;
+        yield return SetSortByCommand.ThrownExceptions;
+        yield return UndoCommand.ThrownExceptions;
+        yield return RedoCommand.ThrownExceptions;
+        yield return SelectAllCommand.ThrownExceptions;
+        yield return SelectNoneCommand.ThrownExceptions;
+        yield return InvertSelectionCommand.ThrownExceptions;
+    }
+
+    private sealed class ExceptionObserver(Action<Exception> onException) : IObserver<Exception>
+    {
+        public void OnCompleted() { }
+
+        public void OnError(Exception error) => onException(error);
+
+        public void OnNext(Exception value) => onException(value);
     }
 
     private void LoadQuickAccess()
@@ -402,7 +456,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
             _refreshTimer.Start();
         }
 
-        _setDarkMode(AsterSettings.UseDarkMode);
+        _setThemeMode(AsterSettings.ThemeMode);
         if (reload)
             HardReload();
     }
@@ -487,6 +541,10 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
     {
         SaveSettings();
         _refreshTimer?.Stop();
+
+        foreach (IDisposable subscription in _commandExceptionSubscriptions)
+            subscription.Dispose();
+        _commandExceptionSubscriptions.Clear();
 
         _searchManager.Dispose();
 

@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
 using Aster.Core.Extensions;
 using Aster.Core.Models;
 using Aster.Core.Models.FileInformation;
@@ -16,6 +19,17 @@ namespace Aster.Core.ViewModels;
 
 public sealed partial class MainWindowViewModel
 {
+    private const int MaxPreviewCharacters = 1024 * 1024;
+    private static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".bmp",
+        ".gif",
+        ".jpeg",
+        ".jpg",
+        ".png",
+        ".webp",
+    };
+
     private sealed class LoadOperation
     {
         public bool IsSoft { get; }
@@ -134,6 +148,166 @@ public sealed partial class MainWindowViewModel
             await SetLocationAsync(_localFs.GetLocation(dir));
         else
             ShowIfError(_localFs.LocalShellHandler.OpenFile(entry.PathToEntry));
+    }
+
+    private async Task PreviewSelectedAsync()
+    {
+        if (SelectedFiles.Count != 1)
+            return;
+
+        FileSystemEntryViewModel entry = SelectedFiles[0];
+        string metadata = $"{entry.Size} · {entry.LastModified}";
+        FilePreviewData preview;
+
+        if (entry.IsDirectory)
+        {
+            preview = new FilePreviewData(
+                entry.Name,
+                metadata,
+                PreviewContentKind.Unsupported,
+                "Preview is available for files only.",
+                null,
+                [],
+                false
+            );
+        }
+        else if (entry.IsArchived)
+        {
+            ArchivePreview archive = await _localFs.ArchiveManager.GetArchivePreviewAsync(
+                entry.PathToEntry,
+                CancellationToken.None
+            );
+            string unpackedSize = FileSystemEntryViewModel.GetSizeString(
+                archive.TotalUnpackedSize
+            );
+            string summary =
+                $"{archive.EntryCount} entries · "
+                + $"{unpackedSize} unpacked · {entry.Size} packed";
+            preview = new FilePreviewData(
+                entry.Name,
+                metadata,
+                PreviewContentKind.Archive,
+                summary,
+                null,
+                archive.Entries,
+                archive.IsTruncated
+            );
+        }
+        else if (ImageExtensions.Contains(Path.GetExtension(entry.PathToEntry)))
+        {
+            ValueResult<Stream> streamResult = _localFs.LocalFileInfoProvider.GetFileStream(
+                entry.PathToEntry
+            );
+            if (!streamResult.IsOk)
+            {
+                ShowIfError(streamResult);
+                return;
+            }
+
+            await using Stream stream = streamResult.Value;
+            Bitmap bitmap = new(stream);
+            preview = new FilePreviewData(
+                entry.Name,
+                metadata,
+                PreviewContentKind.Image,
+                $"{bitmap.PixelSize.Width} × {bitmap.PixelSize.Height}",
+                null,
+                [],
+                false
+            )
+            {
+                Image = bitmap,
+            };
+        }
+        else
+        {
+            ValueResult<Stream> streamResult = _localFs.LocalFileInfoProvider.GetFileStream(
+                entry.PathToEntry
+            );
+            if (!streamResult.IsOk)
+            {
+                ShowIfError(streamResult);
+                return;
+            }
+
+            await using Stream stream = streamResult.Value;
+            using StreamReader reader = new(
+                stream,
+                Encoding.UTF8,
+                detectEncodingFromByteOrderMarks: true,
+                bufferSize: 4096,
+                leaveOpen: true
+            );
+            char[] buffer = new char[MaxPreviewCharacters + 1];
+            int charactersRead = 0;
+            while (charactersRead < buffer.Length)
+            {
+                int read = await reader.ReadAsync(
+                    buffer.AsMemory(charactersRead, buffer.Length - charactersRead),
+                    CancellationToken.None
+                );
+                if (read == 0)
+                    break;
+                charactersRead += read;
+            }
+
+            bool isTruncated = charactersRead > MaxPreviewCharacters;
+            string content = new(
+                buffer,
+                0,
+                Math.Min(charactersRead, MaxPreviewCharacters)
+            );
+            if (!LooksLikeText(content))
+            {
+                preview = new FilePreviewData(
+                    entry.Name,
+                    metadata,
+                    PreviewContentKind.Unsupported,
+                    "This file does not appear to contain readable text.",
+                    null,
+                    [],
+                    false
+                );
+            }
+            else
+            {
+                int lineCount = content.Split('\n').Length;
+                int wordCount = content.Split(
+                    (char[]?)null,
+                    StringSplitOptions.RemoveEmptyEntries
+                ).Length;
+                string summary = $"{lineCount} lines · {wordCount} words";
+                if (isTruncated)
+                    summary += " · Showing the first 1 MiB";
+
+                preview = new FilePreviewData(
+                    entry.Name,
+                    metadata,
+                    PreviewContentKind.Text,
+                    summary,
+                    content,
+                    [],
+                    isTruncated
+                );
+            }
+        }
+
+        await _dialogService.PreviewDialogAsync(preview);
+    }
+
+    private static bool LooksLikeText(string content)
+    {
+        if (content.Contains('\0'))
+            return false;
+
+        int unusualCharacters = content.Count(character =>
+            character == '\uFFFD'
+            || (
+                char.IsControl(character)
+                && character is not ('\r' or '\n' or '\t' or '\f')
+            )
+        );
+        return content.Length == 0 || unusualCharacters * 100 <= content.Length;
     }
 
     private void OpenAs(FileSystemEntryViewModel entry)

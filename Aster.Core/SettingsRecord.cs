@@ -44,6 +44,7 @@ public record SettingsRecord
     public bool openInLastLocation { get; set; } = true;
     public string openIn { get; set; } = RootDir;
     public bool useDarkMode { get; set; } = true;
+    public string? themeMode { get; set; }
     public string displayMode { get; set; } = nameof(DisplayMode.ListView);
     public string defaultSort { get; set; } = nameof(SortBy.Name);
     public int fileSizeUnitLimit { get; set; } = 4096;

@@ -19,6 +19,8 @@ public delegate Task<T> ReportingOperation<T>(ProgressReporter reporter, Cancell
 public interface IDialogService
 {
     public void InfoDialog(string title, string info);
+
+    public Task PreviewDialogAsync(FilePreviewData preview);
     
     public Task<T> BlockingDialogAsync<T>(string title, AsyncOperation<T> operation);
 

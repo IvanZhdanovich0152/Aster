@@ -72,6 +72,8 @@ public class FileEntryInfo : FileEntry
     public DateTime LastModifiedUtc { get; }
 
     public long SizeB { get; }
+
+    public UnixFileMode? UnixMode { get; }
     
     public FileEntryInfo(
         string pathToFile,
@@ -79,21 +81,24 @@ public class FileEntryInfo : FileEntry
         string extension,
         long sizeB,
         DateTime lastModified,
-        DateTime lastModifiedUtc
+        DateTime lastModifiedUtc,
+        UnixFileMode? unixMode = null
     )
         : base(pathToFile, name, extension)
     {
         LastModified = lastModified;
         LastModifiedUtc = lastModifiedUtc;
         SizeB = sizeB;
+        UnixMode = unixMode;
     }
     
-    public FileEntryInfo(FileInfo fileInfo)
+    public FileEntryInfo(FileInfo fileInfo, UnixFileMode? unixMode = null)
         : base(fileInfo.FullName, fileInfo.Name, fileInfo.Extension)
     {
         LastModified = fileInfo.LastWriteTime;
         LastModifiedUtc = fileInfo.LastWriteTimeUtc;
         SizeB = fileInfo.Length;
+        UnixMode = unixMode;
     }
 }
 
@@ -102,24 +107,29 @@ public class DirectoryEntryInfo : DirectoryEntry
     public DateTime LastModified { get; }
     
     public DateTime LastModifiedUtc { get; }
+
+    public UnixFileMode? UnixMode { get; }
     
     public DirectoryEntryInfo(
         string dirPath,
         string name,
         DateTime lastModified,
-        DateTime lastModifiedUtc
+        DateTime lastModifiedUtc,
+        UnixFileMode? unixMode = null
     )
         : base(dirPath, name)
     {
         LastModified = lastModified;
         LastModifiedUtc = lastModifiedUtc;
+        UnixMode = unixMode;
     }
 
-    public DirectoryEntryInfo(DirectoryInfo dirInfo)
+    public DirectoryEntryInfo(DirectoryInfo dirInfo, UnixFileMode? unixMode = null)
         : base(dirInfo.FullName, dirInfo.Name)
     {
         LastModified = dirInfo.LastWriteTime;
         LastModifiedUtc = dirInfo.LastWriteTimeUtc;
+        UnixMode = unixMode;
     }
 }
 

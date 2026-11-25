@@ -26,12 +26,14 @@
         <!--  backup keybinding - gesture is 'Delete' when not local  -->
         <KeyBinding Command="{Binding DeleteCommand}" Gesture="{DynamicResource EmptyGesture}" />
         <KeyBinding Command="{Binding DeleteCommand}" Gesture="{DynamicResource DeleteGesture}" />
+        <KeyBinding Command="{Binding MoveToTrashCommand}" Gesture="Delete" />
         <KeyBinding Command="{Binding UndoCommand}" Gesture="{DynamicResource UndoGesture}" />
         <KeyBinding Command="{Binding RedoCommand}" Gesture="{DynamicResource RedoGesture}" />
         <KeyBinding Command="{Binding SelectAllCommand}" Gesture="{DynamicResource SelectAllGesture}" />
         <KeyBinding Command="{Binding SelectNoneCommand}" Gesture="{DynamicResource SelectNoneGesture}" />
         <KeyBinding Command="{Binding InvertSelectionCommand}" Gesture="{DynamicResource InvertSelectionGesture}" />
         <KeyBinding Command="{Binding GoUpCommand}" Gesture="{DynamicResource GoUpGesture}" />
+        <KeyBinding Command="{Binding PreviewCommand}" Gesture="Space" />
     </Window.KeyBindings>
 
     <Window.Resources>
@@ -40,14 +42,14 @@
         <helpers:IsNotEmptyConverter x:Key="IsNotEmptyConverter" />
 
         <DataTemplate x:Key="ListViewTemplate" x:DataType="{x:Type vm:FileSystemEntryViewModel}">
-            <Grid Height="36">
+            <Grid Height="40">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="30" />
-                    <ColumnDefinition Width="*" MinWidth="90" MaxWidth="400" />
+                    <ColumnDefinition Width="*" MinWidth="90" />
                     <ColumnDefinition Width="160" />
                     <ColumnDefinition Width="130" />
-                    <ColumnDefinition Width="90" />
                     <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="130" />
                 </Grid.ColumnDefinitions>
 
                 <Image Grid.Column="0"
@@ -71,12 +73,13 @@
                 <TextBlock Grid.Column="3" Classes="FileInfo" Text="{Binding Type}" />
 
                 <TextBlock Grid.Column="4" Classes="FileInfo" Text="{Binding Size}" TextAlignment="Right" />
-                
+                <TextBlock Grid.Column="5" Classes="FileInfo Permissions" Text="{Binding Permissions}" />
+
             </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="SearchViewTemplate" x:DataType="{x:Type vm:FileSystemEntryViewModel}">
-            <Grid Height="36">
+            <Grid Height="40">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="30" />
                     <ColumnDefinition Width="350" />
@@ -115,7 +118,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="IconViewTemplate" x:DataType="{x:Type vm:FileSystemEntryViewModel}">
-            <StackPanel Width="80" Spacing="10">
+            <StackPanel Width="88" Spacing="10">
                 <Grid>
                     <Image Width="60"
                            Height="60"
@@ -139,11 +142,11 @@
         <!--  ReSharper restore Xaml.RedundantResource  -->
 
         <DataTemplate x:Key="SideBarTemplate" x:DataType="{x:Type vm:SideBarEntryViewModel}">
-            <Grid Height="27" ColumnDefinitions="Auto *">
+            <Grid Height="34" ColumnDefinitions="Auto *">
                 <Image Grid.Column="0"
                        Width="20"
                        Height="20"
-                       Margin="20 0 12 0"
+                       Margin="14 0 12 0"
                        Opacity="{Binding Opacity}"
                        Source="{Binding Icon}" />
                 <TextBlock Grid.Column="1" Classes="FileInfo" FontFamily="Arial" Text="{Binding Name}" />
@@ -180,7 +183,7 @@
     </Window.Resources>
 
     <DockPanel Background="{DynamicResource PrimaryColor}">
-        <DockPanel Height="50" Margin="10 0" DockPanel.Dock="Top">
+        <DockPanel Height="60" Margin="18 0" DockPanel.Dock="Top">
             <Button x:Name="FocusSink"
                     Width="0"
                     Height="0"
@@ -246,18 +249,14 @@
                     HotKey="Shift+F12"
                     ToolTip.Tip="Open terminal here" />
 
-            <Grid ColumnDefinitions="Auto 20 * 250">
-                <TextBox Grid.Column="0" Classes="LabelBox TopTextBox" Text="{Binding CurrentFsLabel, Mode=OneWay}" />
-
-                <TextBlock Grid.Column="1" Classes="ColonSeparator" Text=":" />
-
+            <Grid ColumnDefinitions="* 250">
                 <TextBox x:Name="PathBox"
-                         Grid.Column="2"
+                         Grid.Column="0"
                          Classes="PathBox TopTextBox"
                          LostFocus="PathBoxLostFocus"
                          Text="{Binding PathBoxText, Mode=OneWay}" />
 
-                <Grid Grid.Column="3">
+                <Grid Grid.Column="1">
                     <TextBox x:Name="SearchBox" Classes="SearchBox TopTextBox" Watermark="{Binding SearchWaterMark}" />
                     <Button Classes="CancelSearchButton"
                             Command="{Binding CancelSearchCommand}"
@@ -269,8 +268,8 @@
             </Grid>
         </DockPanel>
 
-        <Border Height="55" BorderBrush="{DynamicResource SecondaryColor}" BorderThickness="0 1 0 1" DockPanel.Dock="Top">
-            <DockPanel Margin="10 0" LastChildFill="False">
+        <Border Height="56" BorderBrush="{DynamicResource SecondaryColor}" BorderThickness="0 1 0 1" DockPanel.Dock="Top">
+            <DockPanel Margin="18 0" LastChildFill="False">
                 <Button Classes="StateButton FileOperationButton"
                         Command="{Binding NewFileCommand}"
                         Content="&#xEA7F;"
@@ -370,19 +369,18 @@
                         </MenuFlyout>
                     </Button.Flyout>
                 </Button>
-                
             </DockPanel>
         </Border>
 
         <Grid DockPanel.Dock="Bottom" RowDefinitions="* 24">
             <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="200" MinWidth="100" />
+                    <ColumnDefinition Width="220" MinWidth="160" />
                     <ColumnDefinition Width="9" />
                     <ColumnDefinition Width="*" MinWidth="200" />
                 </Grid.ColumnDefinitions>
 
-                <ScrollViewer Padding="4 10 0 3">
+                <ScrollViewer Padding="6 14 0 3">
                     <StackPanel Margin="0 0 0 40" Orientation="Vertical">
 
                         <TextBlock Classes="SidebarLabel" Text="Quick Access" />
@@ -442,14 +440,17 @@
 
                 <GridSplitter Grid.Column="1" Classes="GridSplitter" />
 
-                <Grid Grid.Column="2" RowDefinitions="Auto Auto * Auto Auto">
+                <ScrollViewer Grid.Column="2"
+                              HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Disabled">
+                <Grid RowDefinitions="Auto Auto * Auto Auto">
                     <Grid x:Name="ListViewLabelsPanel"
-                          Height="30"
-                          Margin="65 0 0 0"
+                          Height="34"
+                          Margin="60 0 12 0"
                           IsVisible="{Binding ItemTemplate, ElementName=FileDisplay, Converter={StaticResource SameObjectConverter}, ConverterParameter={StaticResource ListViewTemplate}}"
                           RowDefinitions="*">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" MinWidth="90 " MaxWidth="400" />
+                            <ColumnDefinition Width="*" MinWidth="90" />
                             <ColumnDefinition Width="160" />
                             <ColumnDefinition Width="130" />
                             <ColumnDefinition Width="100" />
@@ -469,14 +470,14 @@
                             <Label Classes="InfoLabel" Content="Size" />
                         </Border>
                         <Border Grid.Column="4" Classes="LabelBorder">
-                            <Label Classes="InfoLabel" Content="Staged" />
+                            <Label Classes="InfoLabel" Content="Permissions" />
                         </Border>
                     </Grid>
 
                     <Grid x:Name="SearchLabelsPanel"
                           Grid.Row="0"
-                          Height="30"
-                          Margin="65 0 0 0"
+                          Height="34"
+                          Margin="60 0 12 0"
                           IsVisible="{Binding Searching}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="350" />
@@ -505,17 +506,19 @@
                              ItemTemplate="{StaticResource ListViewTemplate}"
                              ItemsPanel="{StaticResource ListViewPanel}"
                              ItemsSource="{Binding FileEntries}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                              SelectedItems="{Binding SelectedFiles}"
                              SelectionMode="Multiple"
                              Tapped="FilesTapped">
                         <ListBox.Styles>
                             <Style Selector="ListBoxItem">
                                 <Setter Property="Padding" Value="10 0 0 0" />
-                                <Setter Property="Margin" Value="8 0 14 0" />
+                                <Setter Property="Margin" Value="4 1 8 1" />
                                 <Setter Property="ContextMenu">
                                     <Setter.Value>
                                         <!--  ReSharper disable Xaml.PossibleNullReferenceException  -->
                                         <ContextMenu x:DataType="vm:FileSystemEntryViewModel" Classes="FileContextMenu">
+                                            <MenuItem Classes="ContextMenuItem" Command="{Binding #FileDisplay.((vm:MainWindowViewModel)DataContext).PreviewCommand}" Header="Preview" IsEnabled="{Binding !IsDirectory}" />
                                             <MenuItem Classes="ContextMenuItem" Command="{Binding #FileDisplay.((vm:MainWindowViewModel)DataContext).OpenEntriesCommand}" Header="Open" />
                                             <MenuItem Classes="ContextMenuItem"
                                                       Command="{Binding #FileDisplay.((vm:MainWindowViewModel)DataContext).OpenAsCommand}"
@@ -563,8 +566,46 @@
                                 <Setter Property="ContextMenu">
                                     <Setter.Value>
                                         <ContextMenu Classes="FileContextMenu">
+                                            <MenuItem Classes="ContextMenuItem"
+                                                      Command="{Binding #FileDisplay.((vm:MainWindowViewModel)DataContext).NewFileCommand}">
+                                                <MenuItem.Header>
+                                                    <Grid Width="220" ColumnDefinitions="*,Auto">
+                                                        <TextBlock Text="New file" />
+                                                        <TextBlock Grid.Column="1" Opacity="0.6" Text="Ctrl+N" />
+                                                    </Grid>
+                                                </MenuItem.Header>
+                                            </MenuItem>
+                                            <MenuItem Classes="ContextMenuItem"
+                                                      Command="{Binding #FileDisplay.((vm:MainWindowViewModel)DataContext).NewDirCommand}">
+                                                <MenuItem.Header>
+                                                    <Grid Width="220" ColumnDefinitions="*,Auto">
+                                                        <TextBlock Text="New folder" />
+                                                        <TextBlock Grid.Column="1" Opacity="0.6" Text="Ctrl+Shift+N" />
+                                                    </Grid>
+                                                </MenuItem.Header>
+                                            </MenuItem>
+                                            <Separator Classes="ContextMenuSeparator" />
                                             <MenuItem Classes="ContextMenuItem" Command="{Binding #FileDisplay.((vm:MainWindowViewModel)DataContext).AddToQuickAccessCommand}" Header="Add to quick access" />
+                                            <MenuItem Classes="ContextMenuItem"
+                                                      Command="{Binding #FileDisplay.((vm:MainWindowViewModel)DataContext).OpenTerminalCommand}">
+                                                <MenuItem.Header>
+                                                    <Grid Width="220" ColumnDefinitions="*,Auto">
+                                                        <TextBlock Text="Open in terminal" />
+                                                        <TextBlock Grid.Column="1" Opacity="0.6" Text="Shift+F12" />
+                                                    </Grid>
+                                                </MenuItem.Header>
+                                            </MenuItem>
 
+                                            <Separator Classes="ContextMenuSeparator" />
+                                            <MenuItem Classes="ContextMenuItem"
+                                                      Command="{Binding #FileDisplay.((vm:MainWindowViewModel)DataContext).ReloadCommand}">
+                                                <MenuItem.Header>
+                                                    <Grid Width="220" ColumnDefinitions="*,Auto">
+                                                        <TextBlock Text="Refresh" />
+                                                        <TextBlock Grid.Column="1" Opacity="0.6" Text="F5" />
+                                                    </Grid>
+                                                </MenuItem.Header>
+                                            </MenuItem>
                                             <Separator Classes="ContextMenuSeparator" />
                                             <MenuItem Classes="ContextMenuItem" Command="{Binding #FileDisplay.((vm:MainWindowViewModel)DataContext).CopyPathCommand}" Header="Copy path" />
                                             <MenuItem Classes="ContextMenuItem" Command="{Binding #FileDisplay.((vm:MainWindowViewModel)DataContext).PasteCommand}" Header="Paste here" />
@@ -588,6 +629,7 @@
                     </Border>
 
                 </Grid>
+                </ScrollViewer>
             </Grid>
 
             <Border Grid.Row="1" BorderBrush="{DynamicResource SecondaryColor}" BorderThickness="0 1 0 0">

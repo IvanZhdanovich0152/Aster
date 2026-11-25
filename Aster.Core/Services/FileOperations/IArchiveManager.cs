@@ -6,9 +6,20 @@ using Aster.Core.Services.Dialogs;
 
 namespace Aster.Core.Services.FileOperations;
 
+public sealed record ArchivePreviewEntry(string Name, int Depth, bool IsDirectory, long Size);
+
+public sealed record ArchivePreview(
+    IReadOnlyList<ArchivePreviewEntry> Entries,
+    int EntryCount,
+    long TotalUnpackedSize,
+    bool IsTruncated
+);
+
 public interface IArchiveManager
 { 
     bool IsArchived(string filePath);
+
+    Task<ArchivePreview> GetArchivePreviewAsync(string archivePath, CancellationToken ct);
 
     Task<IResult> ArchiveEntriesAsync(
         IList<IFileSystemEntry> entries,

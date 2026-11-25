@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Aster.Core.Models;
@@ -51,15 +52,10 @@ public sealed class FileSystemEntryViewModel : ReactiveObject
 
     public string Type { get; }
 
+    public string Permissions { get; }
+
     public double Opacity { get; }
     
-
-    public bool Staged
-    {
-        get => _staged;
-        private set => this.RaiseAndSetIfChanged(ref _staged, value);
-    }
-    private bool _staged;
 
     public bool IsArchived { get; } = false;
 
@@ -74,6 +70,7 @@ public sealed class FileSystemEntryViewModel : ReactiveObject
         LastModified = GetLastModified(LastModTime);
         SizeB = entry.SizeB;
         Size = GetSizeString(entry.SizeB);
+        Permissions = FormatPermissions(entry.UnixMode, isDirectory: false);
         string extension = entry.Extension.TrimStart('.').ToUpperInvariant();
         Type = string.IsNullOrEmpty(extension) ? "File" : $"{extension} File";
 
@@ -96,6 +93,7 @@ public sealed class FileSystemEntryViewModel : ReactiveObject
         LastModified = GetLastModified(LastModTime);
         SizeB = null;
         Size = string.Empty;
+        Permissions = FormatPermissions(entry.UnixMode, isDirectory: true);
         Type = DirectoryLabel;
 
         Opacity = fileSystem.FileInfoProvider.IsHidden(entry.PathToEntry, IsDirectory)
@@ -112,6 +110,37 @@ public sealed class FileSystemEntryViewModel : ReactiveObject
 
     private static string GetLastModified(DateTime time) =>
         $"{time.ToShortDateString()} {time.ToShortTimeString()}";
+
+    private static string FormatPermissions(UnixFileMode? unixMode, bool isDirectory)
+    {
+        if (unixMode is not { } mode)
+            return "??????????";
+
+        static bool Has(UnixFileMode value, UnixFileMode flag) => (value & flag) != 0;
+
+        char[] permissions =
+        [
+            isDirectory ? 'd' : '-',
+            Has(mode, UnixFileMode.UserRead) ? 'r' : '-',
+            Has(mode, UnixFileMode.UserWrite) ? 'w' : '-',
+            Has(mode, UnixFileMode.UserExecute) ? 'x' : '-',
+            Has(mode, UnixFileMode.GroupRead) ? 'r' : '-',
+            Has(mode, UnixFileMode.GroupWrite) ? 'w' : '-',
+            Has(mode, UnixFileMode.GroupExecute) ? 'x' : '-',
+            Has(mode, UnixFileMode.OtherRead) ? 'r' : '-',
+            Has(mode, UnixFileMode.OtherWrite) ? 'w' : '-',
+            Has(mode, UnixFileMode.OtherExecute) ? 'x' : '-',
+        ];
+
+        if (Has(mode, UnixFileMode.SetUser))
+            permissions[3] = Has(mode, UnixFileMode.UserExecute) ? 's' : 'S';
+        if (Has(mode, UnixFileMode.SetGroup))
+            permissions[6] = Has(mode, UnixFileMode.GroupExecute) ? 's' : 'S';
+        if (Has(mode, UnixFileMode.StickyBit))
+            permissions[9] = Has(mode, UnixFileMode.OtherExecute) ? 't' : 'T';
+
+        return new string(permissions);
+    }
 
     public static string GetSizeString(long sizeInB)
     {

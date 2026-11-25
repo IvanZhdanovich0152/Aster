@@ -18,6 +18,8 @@ namespace Aster.Core.Services.FileOperations;
 
 public class LocalArchiveManager : IArchiveManager
 {
+    private const int MaxPreviewEntries = 2000;
+
     private sealed record ArchiveType(
         string Extension,
         Func<Stream, Task<IAsyncReader>>? FactoryFn
@@ -38,9 +40,18 @@ public class LocalArchiveManager : IArchiveManager
             async stream =>
                 await (await SevenZipArchive.OpenAsyncArchive(stream)).ExtractAllEntriesAsync()
         ),
+        new(".tar.xz", null),
+        new(".txz", null),
+        new(".tar.bz2", null),
+        new(".tbz2", null),
+        new(".tar.zst", null),
+        new(".tzst", null),
         new(".gzip", null),
         new(".tar.gz", null),
         new(".tgz", null),
+        new(".xz", null),
+        new(".bz2", null),
+        new(".zst", null),
         new(".tar", null),
         new(".gz", null),
     ];
@@ -60,6 +71,58 @@ public class LocalArchiveManager : IArchiveManager
             : await ReaderFactory.OpenAsyncReader(stream);
 
     public bool IsArchived(string filePath) => GetArchiveExtension(filePath) is not null;
+
+    public async Task<ArchivePreview> GetArchivePreviewAsync(
+        string archivePath,
+        CancellationToken ct
+    )
+    {
+        if (GetArchiveExtension(archivePath) is not ArchiveType archiveType)
+            throw new InvalidDataException($"\"{archivePath}\" is not a supported archive.");
+
+        await using Stream stream = File.OpenRead(archivePath);
+        await using IAsyncReader reader = await GetReader(stream, archiveType);
+
+        List<ArchivePreviewEntry> entries = new();
+        int entryCount = 0;
+        long totalUnpackedSize = 0;
+        bool isTruncated = false;
+
+        while (await reader.MoveToNextEntryAsync(ct))
+        {
+            ct.ThrowIfCancellationRequested();
+            if (reader.Entry.Key is not string key)
+                continue;
+
+            string[] parts = key
+                .TrimEnd('/', '\\')
+                .Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0)
+                continue;
+
+            entryCount++;
+            long size = reader.Entry.Size;
+            if (!reader.Entry.IsDirectory)
+                totalUnpackedSize =
+                    size > long.MaxValue - totalUnpackedSize
+                        ? long.MaxValue
+                        : totalUnpackedSize + size;
+
+            if (entries.Count < MaxPreviewEntries)
+                entries.Add(
+                    new ArchivePreviewEntry(
+                        parts[^1],
+                        parts.Length - 1,
+                        reader.Entry.IsDirectory,
+                        size
+                    )
+                );
+            else
+                isTruncated = true;
+        }
+
+        return new ArchivePreview(entries, entryCount, totalUnpackedSize, isTruncated);
+    }
 
     private static ArchiveType? GetArchiveExtension(string filePath)
     {

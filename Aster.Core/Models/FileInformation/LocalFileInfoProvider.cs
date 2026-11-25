@@ -13,6 +13,8 @@ public abstract class LocalFileInfoProvider : ILocalFileInfoProvider
 {
     public virtual IPathTools PathTools => LocalPathTools.Instance;
 
+    protected virtual UnixFileMode? GetUnixMode(string path) => null;
+
     public abstract bool IsLinkedToDirectory(
         string linkPath,
         [NotNullWhen(true)] out string? directory
@@ -40,9 +42,9 @@ public abstract class LocalFileInfoProvider : ILocalFileInfoProvider
             foreach (FileSystemInfo entry in entries)
             {
                 if (entry is FileInfo f)
-                    files.Add(new FileEntryInfo(f));
+                    files.Add(new FileEntryInfo(f, GetUnixMode(f.FullName)));
                 if (entry is DirectoryInfo d)
-                    dirs.Add(new DirectoryEntryInfo(d));
+                    dirs.Add(new DirectoryEntryInfo(d, GetUnixMode(d.FullName)));
             }
 
             return new DirectoryContents { Files = files, Dirs = dirs }.OkResult();
@@ -79,9 +81,9 @@ public abstract class LocalFileInfoProvider : ILocalFileInfoProvider
                     {
                         ct.ThrowIfCancellationRequested();
                         if (entry is FileInfo f)
-                            files.Add(new FileEntryInfo(f));
+                            files.Add(new FileEntryInfo(f, GetUnixMode(f.FullName)));
                         if (entry is DirectoryInfo d)
-                            dirs.Add(new DirectoryEntryInfo(d));
+                            dirs.Add(new DirectoryEntryInfo(d, GetUnixMode(d.FullName)));
                     }
                     return (dirs, files);
                 },

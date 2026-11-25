@@ -27,8 +27,6 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="ReactiveUI.Avalonia" Version="12.1.4" />
-        <PackageReference Include="Mime-Detective" Version="25.8.1" />
-        <PackageReference Include="Mime-Detective.Definitions.Exhaustive" Version="25.8.1" />
         <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
     </ItemGroup>
 </Project>

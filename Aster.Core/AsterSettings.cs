@@ -14,6 +14,13 @@ public enum DisplayMode
     ListView, IconView,
 }
 
+public enum AppThemeMode
+{
+    System,
+    Light,
+    Dark,
+}
+
 public enum SortBy
 {
     Name, Date, Type, Size,
@@ -28,19 +35,24 @@ public static class AsterSettings
 {
     private static readonly char[] InvalidFileNameChars = Path.GetInvalidFileNameChars();
     private static readonly char[] InvalidPathChars = Path.GetInvalidPathChars();
-    private static readonly string FileSurferDataDir = Path.Combine(
+    private static readonly string AsterDataDir = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "Aster"
     );
 
     public static readonly string SettingsFilePath = Path.Combine(
-        FileSurferDataDir,
+        AsterDataDir,
         "settings.json"
     );
 
     public static Action? OnSettingsChange { private get; set; }
 
-    public static SettingsRecord DefaultSettings => new();
+    public static SettingsRecord DefaultSettings =>
+        new()
+        {
+            themeMode = nameof(AppThemeMode.System),
+            useDarkMode = false,
+        };
 
     public static SettingsRecord CurrentSettings =>
         new()
@@ -55,7 +67,8 @@ public static class AsterSettings
             terminalArgs = TerminalArgs,
             openInLastLocation = OpenInLastLocation,
             openIn = OpenIn,
-            useDarkMode = UseDarkMode,
+            useDarkMode = ThemeMode is AppThemeMode.Dark,
+            themeMode = ThemeMode.ToString(),
             displayMode = DisplayMode.ToString(),
             defaultSort = SortingMode.ToString(),
             fileSizeUnitLimit = FileSizeUnitLimit,
@@ -94,7 +107,7 @@ public static class AsterSettings
 
     public static string OpenIn { get; set; }
 
-    public static bool UseDarkMode { get; set; }
+    public static AppThemeMode ThemeMode { get; set; }
 
     public static DisplayMode DisplayMode { get; set; }
 
@@ -186,7 +199,12 @@ public static class AsterSettings
 
         OpenInLastLocation = settings.openInLastLocation;
         OpenIn = SanitizeName(settings.openIn, InvalidPathChars, defaultSettings.openIn);
-        UseDarkMode = settings.useDarkMode;
+        ThemeMode =
+            settings.themeMode is null
+                ? settings.useDarkMode
+                    ? AppThemeMode.Dark
+                    : AppThemeMode.Light
+                : SafeParseEnum<AppThemeMode>(settings.themeMode);
         DisplayMode = SafeParseEnum<DisplayMode>(settings.displayMode);
         SortingMode = SafeParseEnum<SortBy>(settings.defaultSort);
 
@@ -246,8 +264,8 @@ public static class AsterSettings
 
     public static void SaveSettings()
     {
-        if (!Directory.Exists(FileSurferDataDir))
-            Directory.CreateDirectory(FileSurferDataDir);
+        if (!Directory.Exists(AsterDataDir))
+            Directory.CreateDirectory(AsterDataDir);
 
         SettingsRecord settings = CurrentSettings;
         string settingsJson = JsonSerializer.Serialize(settings, SettingsRecord.SerializerOptions);

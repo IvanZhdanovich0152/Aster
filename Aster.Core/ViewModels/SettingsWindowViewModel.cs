@@ -99,7 +99,10 @@ public sealed class SettingsWindowViewModel : ReactiveObject
     }
     private string _openIn;
 
-    public bool UseDarkMode { get; set; }
+    public string ThemeMode { get; set; } = nameof(AppThemeMode.System);
+
+    public IEnumerable<string> ThemeModeOptions { get; } =
+        Enum.GetNames<AppThemeMode>();
 
     public string DisplayMode { get; set; }
 
@@ -163,7 +166,9 @@ public sealed class SettingsWindowViewModel : ReactiveObject
         TerminalArgs = settings.terminalArgs;
         OpenInLastLocation = settings.openInLastLocation;
         OpenIn = settings.openIn;
-        UseDarkMode = settings.useDarkMode;
+        ThemeMode =
+            settings.themeMode
+            ?? (settings.useDarkMode ? nameof(AppThemeMode.Dark) : nameof(AppThemeMode.Light));
         DisplayMode = settings.displayMode;
         DefaultSort = settings.defaultSort;
         FileSizeUnitLimit = settings.fileSizeUnitLimit;
@@ -191,7 +196,8 @@ public sealed class SettingsWindowViewModel : ReactiveObject
             terminalArgs = TerminalArgs.Trim(),
             openInLastLocation = OpenInLastLocation,
             openIn = OpenIn.Trim(),
-            useDarkMode = UseDarkMode,
+            useDarkMode = ThemeMode == nameof(AppThemeMode.Dark),
+            themeMode = ThemeMode,
             displayMode = DisplayMode,
             defaultSort = DefaultSort,
             fileSizeUnitLimit = FileSizeUnitLimit ?? FileSizeUnitLimitLowerBound,
@@ -211,7 +217,7 @@ public sealed class SettingsWindowViewModel : ReactiveObject
 
     public void Save(SettingsRecord settings) => AsterSettings.ImportSettings(settings);
 
-    public void ResetToDefault() => SetValues(new SettingsRecord());
+    public void ResetToDefault() => SetValues(AsterSettings.DefaultSettings);
 
     private static string SanitizeInput(string input, char[] invalidChars)
     {
