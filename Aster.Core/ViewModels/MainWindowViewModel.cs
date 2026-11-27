@@ -238,6 +238,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject, IDisposable
 
     public bool IsLocal => CurrentLocation.FileSystem.IsLocal();
 
+    public bool IsLinux => OperatingSystem.IsLinux();
+
     public bool NotSearching => !Searching;
 
     public MainWindowViewModel(

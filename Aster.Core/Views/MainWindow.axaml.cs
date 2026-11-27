@@ -40,6 +40,7 @@ public partial class MainWindow : Window
 
         if (
             Resources["ListViewTemplate"] is not DataTemplate listViewTemplate
+            || Resources["ListViewTemplateLinux"] is not DataTemplate listViewTemplateLinux
             || Resources["IconViewTemplate"] is not DataTemplate iconViewTemplate
             || Resources["SearchViewTemplate"] is not DataTemplate searchViewTemplate
             || Resources["ListViewPanel"] is not ItemsPanelTemplate listViewPanel
@@ -47,7 +48,7 @@ public partial class MainWindow : Window
         )
             throw new UnreachableException();
 
-        _listViewTemplate = listViewTemplate;
+        _listViewTemplate = OperatingSystem.IsLinux() ? listViewTemplateLinux : listViewTemplate;
         _iconViewTemplate = iconViewTemplate;
         _searchViewTemplate = searchViewTemplate;
         _listViewPanel = listViewPanel;
@@ -119,6 +120,8 @@ public partial class MainWindow : Window
 
         if (AsterSettings.DisplayMode is DisplayMode.IconView)
             IconView();
+        else
+            ListView();
     }
 
     private static void ConstructToolTip(Button button)

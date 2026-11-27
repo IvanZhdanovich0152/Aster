@@ -49,6 +49,38 @@
                     <ColumnDefinition Width="160" />
                     <ColumnDefinition Width="130" />
                     <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+
+                <Image Grid.Column="0"
+                       Width="28"
+                       Height="28"
+                       Margin="0 0 13 0"
+                       Opacity="{Binding Opacity}"
+                       Source="{Binding Icon}" />
+
+                <Canvas Grid.Column="1">
+                    <TextBlock Canvas.Top="8"
+                               Width="{Binding $parent[Canvas].Bounds.Width}"
+                               Classes="FileInfo"
+                               FontSize="15"
+                               FontWeight="Regular"
+                               Text="{Binding Name}" />
+                </Canvas>
+
+                <TextBlock Grid.Column="2" Classes="FileInfo" Text="{Binding LastModified}" />
+                <TextBlock Grid.Column="3" Classes="FileInfo" Text="{Binding Type}" />
+                <TextBlock Grid.Column="4" Classes="FileInfo" Text="{Binding Size}" TextAlignment="Right" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ListViewTemplateLinux" x:DataType="{x:Type vm:FileSystemEntryViewModel}">
+            <Grid Height="40">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="*" MinWidth="90" />
+                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="130" />
+                    <ColumnDefinition Width="100" />
                     <ColumnDefinition Width="130" />
                 </Grid.ColumnDefinitions>
 
@@ -448,6 +480,32 @@
                           Height="34"
                           Margin="60 0 12 0"
                           IsVisible="{Binding ItemTemplate, ElementName=FileDisplay, Converter={StaticResource SameObjectConverter}, ConverterParameter={StaticResource ListViewTemplate}}"
+                          RowDefinitions="*">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" MinWidth="90" />
+                            <ColumnDefinition Width="160" />
+                            <ColumnDefinition Width="130" />
+                            <ColumnDefinition Width="100" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border BorderThickness="0" Classes="LabelBorder">
+                            <Label Classes="InfoLabel" Content="Name" />
+                        </Border>
+                        <Border Grid.Column="1" Classes="LabelBorder">
+                            <Label Classes="InfoLabel" Content="Modified" />
+                        </Border>
+                        <Border Grid.Column="2" Classes="LabelBorder">
+                            <Label Classes="InfoLabel" Content="Type" />
+                        </Border>
+                        <Border Grid.Column="3" Classes="LabelBorder">
+                            <Label Classes="InfoLabel" Content="Size" />
+                        </Border>
+                    </Grid>
+
+                    <Grid x:Name="ListViewLabelsPanelLinux"
+                          Height="34"
+                          Margin="60 0 12 0"
+                          IsVisible="{Binding ItemTemplate, ElementName=FileDisplay, Converter={StaticResource SameObjectConverter}, ConverterParameter={StaticResource ListViewTemplateLinux}}"
                           RowDefinitions="*">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" MinWidth="90" />
