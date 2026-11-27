@@ -1,56 +1,61 @@
-<Application xmlns="https://github.com/avaloniaui"
+<Application x:Class="Aster.Core.App"
+             xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="Aster.Core.App"
-             xmlns:local="using:Aster.Core"
-             RequestedThemeVariant="Dark">
-    <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             xmlns:core="using:Aster.Core"
+             RequestedThemeVariant="Default">
+
     <Application.DataTemplates>
-        <local:ViewLocator />
+        <core:ViewLocator />
     </Application.DataTemplates>
 
     <Application.Styles>
         <FluentTheme />
-        <Style Selector="Button:pointerover">
-            <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
-        </Style>
-        <Style Selector="Button.nav-button">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="Padding" Value="12,8" />
-            <Setter Property="BorderThickness" Value="0" />
-        </Style>
-        <Style Selector="Button.nav-button:pointerover">
-            <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-        </Style>
-        <Style Selector="TextBox:focus">
-            <Setter Property="BorderBrush" Value="{DynamicResource HoverBrush}" />
-        </Style>
     </Application.Styles>
+
     <Application.Resources>
         <ResourceDictionary>
+            <FontFamily x:Key="IconFont">avares://Aster.Core/Assets/FiraCodeNerdFont-Regular.ttf#FiraCode Nerd Font</FontFamily>
+
+            <KeyGesture x:Key="DeleteGesture">Shift+Delete</KeyGesture>
+            <KeyGesture x:Key="UndoGesture">Ctrl+Z</KeyGesture>
+            <KeyGesture x:Key="RedoGesture">Ctrl+Y</KeyGesture>
+            <KeyGesture x:Key="SelectAllGesture">Ctrl+A</KeyGesture>
+            <KeyGesture x:Key="SelectNoneGesture">Ctrl+Shift+L</KeyGesture>
+            <KeyGesture x:Key="InvertSelectionGesture">Multiply</KeyGesture>
+            <KeyGesture x:Key="GoUpGesture">Alt+Up</KeyGesture>
+            <KeyGesture x:Key="EmptyGesture">None</KeyGesture>
+
             <ResourceDictionary.ThemeDictionaries>
-                <!-- СВЕТЛАЯ ТЕМА -->
                 <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="AppBackgroundBrush">#F9F9F9</SolidColorBrush>
-                    <SolidColorBrush x:Key="PanelBackgroundBrush">#FFFFFF</SolidColorBrush>
-                    <SolidColorBrush x:Key="TextPrimaryBrush">#1F1F1F</SolidColorBrush>
-                    <SolidColorBrush x:Key="TextSecondaryBrush">#606060</SolidColorBrush>
-                    <SolidColorBrush x:Key="BorderBrush">#E1E1E1</SolidColorBrush>
-                    <SolidColorBrush x:Key="HoverBrush">#E5F3FF</SolidColorBrush>
-                    <SolidColorBrush x:Key="ErrorBrush">#B42318</SolidColorBrush>
+                    <Color x:Key="PrimaryColor">#F4F5F6</Color>
+                    <Color x:Key="BackgroundColor">#FFFFFF</Color>
+                    <Color x:Key="SecondaryColor">#E2E5E8</Color>
+                    <Color x:Key="TextBoxColor">#ECEFF1</Color>
+                    <Color x:Key="TextColor">#252A30</Color>
+                    <Color x:Key="IconColor">#58616B</Color>
+                    <Color x:Key="AccentColor">#52796F</Color>
+                    <Color x:Key="SelectionColor">#E1ECE8</Color>
+                    <Color x:Key="GitColor">#F34F29</Color>
+                    <Color x:Key="GitTextColor">#FFFFFF</Color>
+                    <Color x:Key="GitHoverColor">#B03C21</Color>
+                    <Color x:Key="AcceptColor">#52796F</Color>
+                    <Color x:Key="HighLightColor">#C68A32</Color>
                 </ResourceDictionary>
 
-                <!-- ТЕМНАЯ ТЕМА -->
                 <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="AppBackgroundBrush">#141414</SolidColorBrush>
-                    <SolidColorBrush x:Key="PanelBackgroundBrush">#1E1E1E</SolidColorBrush>
-                    <SolidColorBrush x:Key="TextPrimaryBrush">#D4D4D4</SolidColorBrush>
-                    <SolidColorBrush x:Key="TextSecondaryBrush">#969696</SolidColorBrush>
-                    <SolidColorBrush x:Key="BorderBrush">#333333</SolidColorBrush>
-                    <SolidColorBrush x:Key="HoverBrush">#2A2D2E</SolidColorBrush>
-                    <SolidColorBrush x:Key="ErrorBrush">#FF7B72</SolidColorBrush>
+                    <Color x:Key="PrimaryColor">#202428</Color>
+                    <Color x:Key="BackgroundColor">#252A2F</Color>
+                    <Color x:Key="SecondaryColor">#3A4148</Color>
+                    <Color x:Key="TextBoxColor">#2D3339</Color>
+                    <Color x:Key="TextColor">#E2E6E9</Color>
+                    <Color x:Key="IconColor">#B8C0C7</Color>
+                    <Color x:Key="AccentColor">#8FB7A8</Color>
+                    <Color x:Key="SelectionColor">#35463F</Color>
+                    <Color x:Key="GitColor">#F34F29</Color>
+                    <Color x:Key="GitTextColor">#FFFFFF</Color>
+                    <Color x:Key="GitHoverColor">#F2836B</Color>
+                    <Color x:Key="AcceptColor">#8FB7A8</Color>
+                    <Color x:Key="HighLightColor">#D6A254</Color>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>

@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aster.Core", "Aster.Core\As
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aster.Linux", "Aster.Linux\Aster.Linux.csproj", "{9726F019-354A-48ED-AA2E-DA5B07127DF5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aster.Windows", "Aster.Windows\Aster.Windows.csproj", "{78FEF778-A2F4-43FB-8991-DA615B2F1931}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{9726F019-354A-48ED-AA2E-DA5B07127DF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9726F019-354A-48ED-AA2E-DA5B07127DF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9726F019-354A-48ED-AA2E-DA5B07127DF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78FEF778-A2F4-43FB-8991-DA615B2F1931}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78FEF778-A2F4-43FB-8991-DA615B2F1931}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78FEF778-A2F4-43FB-8991-DA615B2F1931}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78FEF778-A2F4-43FB-8991-DA615B2F1931}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

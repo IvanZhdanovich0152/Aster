@@ -6,47 +6,56 @@ namespace Aster.Core.Models;
 public interface IFileSystemEntry
 {
     public string PathToEntry { get; }
+
     public string Name { get; }
+    
     public string Extension { get; }
+
     public string NameWoExtension { get; }
 }
 
 public class FileEntry : IFileSystemEntry
 {
     public string PathToEntry { get; }
+
     public string Name { get; }
+
     public string Extension { get; }
+
     public string NameWoExtension { get; }
 
-    public FileEntry(string pathToEntry, IPathTools pathTool)
+    public FileEntry(string pathToFile, IPathTools pathTools)
     {
-        PathToEntry = pathToEntry;
-        Name = pathTool.GetFileName(pathToEntry);
-        Extension = pathTool.GetExtension(pathToEntry);
-        NameWoExtension = string.IsNullOrEmpty(Extension) ? Name : Name[.. ^Extension.Length];
-    }
+        PathToEntry = pathToFile;
+        Name = pathTools.GetFileName(pathToFile);
+        Extension = pathTools.GetExtension(pathToFile);
 
-    private protected FileEntry(string pathToEntry, string name, string extension)
+        NameWoExtension = string.IsNullOrEmpty(Extension) ? Name : Name[..^Extension.Length];
+    }
+    
+    private protected FileEntry(string pathToFile, string name, string extension)
     {
-        PathToEntry = pathToEntry;
+        PathToEntry = pathToFile;
         Name = name;
         Extension = extension;
-        NameWoExtension = string.IsNullOrEmpty(Extension) ? Name : Name[.. ^Extension.Length];
+
+        NameWoExtension = string.IsNullOrEmpty(Extension) ? name : name[..^Extension.Length];
     }
 }
 
 public class DirectoryEntry : IFileSystemEntry
 {
     public string PathToEntry { get; }
-    public string Name { get; }
-    
-    string IFileSystemEntry.Extension => string.Empty; 
-    string IFileSystemEntry.NameWoExtension => Name;
 
-    public DirectoryEntry(string dirPath, IPathTools pathTool)
+    public string Name { get; }
+
+    string IFileSystemEntry.Extension => string.Empty;
+    string IFileSystemEntry.NameWoExtension => Name;
+    
+    public DirectoryEntry(string dirPath, IPathTools pathTools)
     {
         PathToEntry = dirPath;
-        Name = pathTool.GetFileName(dirPath);
+        Name = pathTools.GetFileName(dirPath);
     }
 
     private protected DirectoryEntry(string dirPath, string name)
@@ -58,56 +67,78 @@ public class DirectoryEntry : IFileSystemEntry
 
 public class FileEntryInfo : FileEntry
 {
-    public DateTime LastModifiedUtc { get; }
-    public long SizeBytes { get; }
+    public DateTime LastModified { get; }
 
+    public DateTime LastModifiedUtc { get; }
+
+    public long SizeB { get; }
+
+    public UnixFileMode? UnixMode { get; }
+    
     public FileEntryInfo(
-        string pathToEntry,
+        string pathToFile,
         string name,
         string extension,
-        long sizeBytes,
-        DateTime lastModifiedUtc
-        ) 
-        : base(pathToEntry, name, extension)
+        long sizeB,
+        DateTime lastModified,
+        DateTime lastModifiedUtc,
+        UnixFileMode? unixMode = null
+    )
+        : base(pathToFile, name, extension)
     {
+        LastModified = lastModified;
         LastModifiedUtc = lastModifiedUtc;
-        SizeBytes = sizeBytes;
+        SizeB = sizeB;
+        UnixMode = unixMode;
     }
-
-    public FileEntryInfo(FileInfo fileInfo)
-    :base(fileInfo.FullName, fileInfo.Name, fileInfo.Extension)
+    
+    public FileEntryInfo(FileInfo fileInfo, UnixFileMode? unixMode = null)
+        : base(fileInfo.FullName, fileInfo.Name, fileInfo.Extension)
     {
+        LastModified = fileInfo.LastWriteTime;
         LastModifiedUtc = fileInfo.LastWriteTimeUtc;
-        SizeBytes = fileInfo.Length;
+        SizeB = fileInfo.Length;
+        UnixMode = unixMode;
     }
 }
 
 public class DirectoryEntryInfo : DirectoryEntry
 {
+    public DateTime LastModified { get; }
+    
     public DateTime LastModifiedUtc { get; }
 
+    public UnixFileMode? UnixMode { get; }
+    
     public DirectoryEntryInfo(
         string dirPath,
         string name,
-        DateTime lastModifiedUtc
+        DateTime lastModified,
+        DateTime lastModifiedUtc,
+        UnixFileMode? unixMode = null
     )
         : base(dirPath, name)
     {
+        LastModified = lastModified;
         LastModifiedUtc = lastModifiedUtc;
+        UnixMode = unixMode;
     }
 
-    public DirectoryEntryInfo(DirectoryInfo dirInfo) 
+    public DirectoryEntryInfo(DirectoryInfo dirInfo, UnixFileMode? unixMode = null)
         : base(dirInfo.FullName, dirInfo.Name)
     {
+        LastModified = dirInfo.LastWriteTime;
         LastModifiedUtc = dirInfo.LastWriteTimeUtc;
+        UnixMode = unixMode;
     }
 }
 
 public sealed class DriveEntryInfo
 {
     public string PathToEntry { get; }
+
     public string Name { get; }
-    
+
     public DriveEntryInfo(string pathToEntry, string name)
     {
         PathToEntry = pathToEntry;
@@ -117,11 +148,8 @@ public sealed class DriveEntryInfo
     public DriveEntryInfo(DriveInfo driveInfo)
     {
         PathToEntry = driveInfo.Name;
-        Name = !string.IsNullOrWhiteSpace(driveInfo.VolumeLabel)
-            ? $"{driveInfo.VolumeLabel} ({driveInfo.Name.TrimEnd(Path.DirectorySeparatorChar)}"
+        Name = !string.IsNullOrEmpty(driveInfo.VolumeLabel)
+            ? $"{driveInfo.VolumeLabel} ({driveInfo.Name.TrimEnd(Path.DirectorySeparatorChar)})"
             : driveInfo.Name;
     }
 }
-
-
-

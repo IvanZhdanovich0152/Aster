@@ -1,0 +1,38 @@
+<Window x:Class="Aster.Core.Views.Dialogs.ProgressDialogWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Width="560"
+        Height="230"
+        d:DesignHeight="230"
+        d:DesignWidth="560"
+        CanResize="False"
+        Classes="DialogWindow"
+        ShowInTaskbar="True"
+        mc:Ignorable="d">
+
+    <Window.Styles>
+        <StyleInclude Source="avares://Aster.Core/Views/Dialogs/DialogWindowStyle.axaml" />
+    </Window.Styles>
+
+    <!--  ReSharper disable Xaml.BindingWithoutContextNotResolved  -->
+    <Grid Classes="MainGrid" RowDefinitions="* Auto">
+        <Border Classes="InfoBlockBorder">
+            <StackPanel Margin="20 0 20 0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                <!-- <TextBlock FontSize="11" Foreground="{DynamicResource TextColor}" Text="{Binding Reporter.CurrentItem}" TextTrimming="LeadingCharacterEllipsis" /> -->
+                <!-- <ProgressBar Classes="DialogProgress" -->
+                <!--              IsIndeterminate="{Binding Reporter.IsIndeterminate}" -->
+                <!--              Maximum="{Binding Reporter.Maximum}" -->
+                <!--              Minimum="{Binding Reporter.Minimum}" -->
+                <!--              Value="{Binding Reporter.Fraction}" /> -->
+            </StackPanel>
+        </Border>
+
+        <!-- <Grid Grid.Row="1" Height="45" IsVisible="{Binding Cts, Converter={x:Static ObjectConverters.IsNotNull}}"> -->
+        <!--     <Rectangle Classes="BottomRectangle" /> -->
+        <!--     <Button Margin="15 6 15 6" Classes="BottomButton" Click="OnCancelClicked" Content="Cancel" /> -->
+        <!-- </Grid> -->
+    </Grid>
+
+</Window>
