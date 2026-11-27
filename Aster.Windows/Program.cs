@@ -36,7 +36,7 @@ internal static class Program
 public class WindowsPlatformBootstrap : IPlatformBootstrap
 {
     public IFileSystem CreateFileSystem() => new WindowsFileSystem();
-    public string GetDefaultRootPath() => "C:/";
+    public string GetDefaultRootPath() => "C:\\";
 }
 
 public class WindowsFileSystem : IFileSystem
