@@ -1,23 +1,64 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+        <UseWindowsForms>true</UseWindowsForms>
         <Nullable>enable</Nullable>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <ApplicationIcon>..\Aster.Core\Assets\aster.ico</ApplicationIcon>
+        <AnalysisLevel>latest-recommended</AnalysisLevel>
+        <RootNamespace>Aster.Windows</RootNamespace>
+        <AssemblyName>Aster</AssemblyName>
     </PropertyGroup>
 
+    <ItemGroup>
+        <COMReference Include="Shell32">
+            <WrapperTool>tlbimp</WrapperTool>
+            <VersionMinor>0</VersionMinor>
+            <VersionMajor>1</VersionMajor>
+            <Guid>50a7e9b0-70ef-11d1-b75a-00a0c90564fe</Guid>
+            <Lcid>0</Lcid>
+            <Isolated>false</Isolated>
+            <EmbedInteropTypes>true</EmbedInteropTypes>
+        </COMReference>
+        <COMReference Include="IWshRuntimeLibrary">
+            <WrapperTool>tlbimp</WrapperTool>
+            <VersionMinor>0</VersionMinor>
+            <VersionMajor>1</VersionMajor>
+            <Guid>f935dc20-1cf0-11d0-adb9-00c04fd58a0b</Guid>
+            <Lcid>0</Lcid>
+            <Isolated>false</Isolated>
+            <EmbedInteropTypes>true</EmbedInteropTypes>
+        </COMReference>
+    </ItemGroup>
+    
     <ItemGroup>
         <ProjectReference Include="../Aster.Core/Aster.Core.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="12.1.4"/>
-        <PackageReference Include="Avalonia.Desktop" Version="12.1.4"/>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4"/>
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4"/>
-        <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
-            <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
-            <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+        <PackageReference Include="Avalonia" Version="12.1.4">
+            <TreatAsUsed>true</TreatAsUsed>
         </PackageReference>
-        <PackageReference Include="ReactiveUI.Avalonia" Version="12.1.4"/>
+        <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4">
+            <TreatAsUsed>true</TreatAsUsed>
+        </PackageReference>
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
+        <PackageReference Include="ReactiveUI.Avalonia" Version="12.1.4" />
+        <PackageReference Include="System.Drawing.Common" Version="11.0.0" />
+        <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     </ItemGroup>
+
 </Project>
+
+
+
+
+
+
+
