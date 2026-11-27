@@ -1,0 +1,113 @@
+<Window x:Class="Aster.Core.Views.Dialogs.PreviewWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dialogs="using:Aster.Core.Views.Dialogs"
+        Width="720"
+        Height="390"
+        MinWidth="560"
+        MinHeight="300"
+        Classes="DialogWindow">
+
+    <Window.Styles>
+        <StyleInclude Source="avares://Aster.Core/Views/Dialogs/DialogWindowStyle.axaml" />
+        <Style Selector="TextBox.PreviewText">
+            <Setter Property="Background" Value="{DynamicResource PrimaryColor}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
+            <Setter Property="FontFamily" Value="monospace" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="TextWrapping" Value="NoWrap" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="Button.PreviewButton">
+            <Setter Property="Background" Value="{DynamicResource TextBoxColor}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
+            <Setter Property="Padding" Value="12 6" />
+        </Style>
+    </Window.Styles>
+
+    <Grid Margin="20" RowDefinitions="Auto,*,Auto">
+        <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="4">
+                <TextBlock x:Name="FileNameText"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextColor}" />
+                <TextBlock x:Name="MetadataText"
+                           FontSize="12"
+                           Foreground="{DynamicResource IconColor}" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Width="34"
+                    Height="34"
+                    Classes="PreviewButton"
+                    Click="ClosePreview"
+                    Content="&#xF00D;"
+                    FontFamily="{DynamicResource IconFont}" />
+        </Grid>
+
+        <Border Grid.Row="1"
+                Margin="0 14 0 10"
+                BorderBrush="{DynamicResource SecondaryColor}"
+                BorderThickness="1"
+                CornerRadius="8">
+            <Grid>
+                <TextBox x:Name="TextContent"
+                         Margin="10"
+                         Classes="PreviewText"
+                         IsVisible="False" />
+
+                <ScrollViewer x:Name="ArchiveContent" IsVisible="False">
+                    <ItemsControl x:Name="ArchiveEntries">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="dialogs:ArchivePreviewRow">
+                                <Grid Height="27" ColumnDefinitions="*,100">
+                                    <TextBlock Margin="{Binding Indentation}"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextColor}"
+                                               Text="{Binding DisplayName}" />
+                                    <TextBlock Grid.Column="1"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource IconColor}"
+                                               Text="{Binding SizeText}"
+                                               TextAlignment="Right" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <Image x:Name="ImageContent"
+                       Margin="8"
+                       IsVisible="False"
+                       Stretch="Uniform" />
+
+                <TextBlock x:Name="UnsupportedText"
+                           Margin="18"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource IconColor}"
+                           IsVisible="False"
+                           TextWrapping="Wrap" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+            <TextBlock x:Name="SummaryText"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource IconColor}" />
+            <Button x:Name="CopyTextButton"
+                    Grid.Column="1"
+                    Classes="PreviewButton"
+                    Click="CopyText"
+                    Content="Copy text"
+                    IsVisible="False" />
+            <TextBlock Grid.Row="1"
+                       Grid.ColumnSpan="2"
+                       Margin="0 8 0 0"
+                       FontSize="11"
+                       Foreground="{DynamicResource IconColor}"
+                       Text="Space or Esc to close" />
+        </Grid>
+    </Grid>
+</Window>

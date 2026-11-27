@@ -1,0 +1,88 @@
+using System.Diagnostics.CodeAnalysis;
+using Avalonia.Threading;
+using ReactiveUI;
+
+namespace Aster.Core.Services.Dialogs;
+
+[
+    SuppressMessage(
+        "ReSharper",
+        "UnusedMember.Global"
+    ),
+]
+public sealed class ProgressReporter : ReactiveObject
+{
+    public static ProgressReporter None => new();
+
+    public double Maximum => 1.0;
+
+    public double Minimum => 0.0;
+
+    public bool IsIndeterminate
+    {
+        get => _isIndeterminate;
+        set => this.RaiseAndSetIfChanged(ref _isIndeterminate, value);
+    }
+    private bool _isIndeterminate = true;
+
+    public double Fraction
+    {
+        get => _fraction;
+        private set => this.RaiseAndSetIfChanged(ref _fraction, value);
+    }
+    private double _fraction = 0.0;
+
+    public string? CurrentItem
+    {
+        get => _currentItem;
+        private set => this.RaiseAndSetIfChanged(ref _currentItem, value);
+    }
+    private string? _currentItem;
+
+    public void Report(double fraction, string? item = null)
+    {
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                Fraction = fraction;
+                CurrentItem = item;
+            },
+            DispatcherPriority.Background
+        );
+    }
+    
+    public void ReportIndeterminate(string? item = null) => Report(double.NaN, item);
+}
+
+public sealed class IndeterminateReporter
+{
+    private readonly ProgressReporter _progressReporter;
+
+    public IndeterminateReporter(ProgressReporter progressReporter)
+    {
+        _progressReporter = progressReporter;
+        _progressReporter.IsIndeterminate = true;
+    }
+
+    public void ReportItem(string? item) => _progressReporter.ReportIndeterminate(item);
+}
+
+public sealed class CountingReporter
+{
+    private readonly ProgressReporter _progressReporter;
+    private readonly double _totalCount;
+    private long _finishedCount = 0;
+
+    public CountingReporter(ProgressReporter progressReporter, long totalCount)
+    {
+        _progressReporter = progressReporter;
+        _totalCount = totalCount == 0 ? 1.0 : totalCount;
+        _progressReporter.IsIndeterminate = false;
+    }
+
+    public void ReportItem(string? item = null)
+    {
+        _progressReporter.Report(_finishedCount / _totalCount, item);
+        _finishedCount++;
+    }
+}
